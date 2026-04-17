@@ -3,11 +3,11 @@ import { createI18n } from 'vue-i18n'
 import './style.css'
 import App from './App.vue'
 import router from './router'
-import { messages, getBrowserLanguage } from './locales'
+import { messages } from './locales'
 
 const i18n = createI18n({
   legacy: false,
-  locale: getBrowserLanguage(),
+  locale: 'en',
   fallbackLocale: 'en',
   messages
 })

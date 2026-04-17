@@ -1,6 +1,6 @@
 <template>
   <div>
-    <!-- 配置状态提示（右下角浮动通知） -->
+    <!-- Config status notification (floating notice at bottom-right) -->
     <div
       v-if="hasStoredConfig"
       class="fixed bottom-4 right-4 z-50 bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-lg transition-opacity duration-300 min-w-[300px]"
@@ -85,7 +85,7 @@
     />
 
     <!-- Reset Confirmation Modal -->
-    <!-- 移除重置确认对话框 -->
+    <!-- Reset confirmation dialog removed -->
   </div>
 </template>
 
@@ -101,29 +101,29 @@ import AssetsBuilder from '@/utils/AssetsBuilder.js'
 import WebSocketTransfer from '@/utils/WebSocketTransfer.js'
 import { useDeviceStatus } from '@/composables/useDeviceStatus.js'
 
-// 使用共享的设备状态
+// Use the shared device status
 const {
   callMcpTool: callDeviceMcpTool
 } = useDeviceStatus()
 
-// 使用国际化
+// Use i18n
 const { t } = useI18n()
 
 const currentStep = ref(0)
 const showGenerateModal = ref(false)
-const activeThemeTab = ref('wakeword') // 保持主题设计页面的tab状态
+const activeThemeTab = ref('wakeword') // Preserve the tab state of the theme design page
 
-// 存储相关状态
-const hasStoredConfig = ref(false) // 是否从存储中恢复了配置
-const isAutoSaveEnabled = ref(false) // 是否启用自动保存
+// Storage-related state
+const hasStoredConfig = ref(false) // Whether config was restored from storage
+const isAutoSaveEnabled = ref(false) // Whether auto-save is enabled
 const isResetting = ref(false)
 const isLoading = ref(true)
 const assetsBuilder = new AssetsBuilder()
-const autoHideTimer = ref(null) // 新增：自动隐藏定时器
-const webSocketTransfer = ref(null) // WebSocket传输实例
+const autoHideTimer = ref(null) // Auto-hide timer
+const webSocketTransfer = ref(null) // WebSocket transfer instance
 
-// 注意：由于在setup函数外部，我们需要在这里定义一个函数来获取翻译
-// 或者我们可以将这个移到setup函数内部
+// Note: since we're outside the setup function, we need to define a helper here to get translations,
+// or move this into the setup function
 const steps = [
   { titleKey: 'steps.chip', key: 'chip' },
   { titleKey: 'steps.theme', key: 'theme' },
@@ -148,7 +148,7 @@ const config = ref({
         command: '',
         threshold: 20,
         duration: 3000,
-        model: 'mn6_cn'
+        model: 'mn6_en'
       }
     },
     font: {
@@ -202,7 +202,7 @@ const nextStep = async () => {
   if (currentStep.value < steps.length - 1) {
     currentStep.value++
     
-    // 启用自动保存（如果还没启用的话）
+    // Enable auto-save (if not already enabled)
     if (!isAutoSaveEnabled.value) {
       isAutoSaveEnabled.value = true
       await saveConfigToStorage()
@@ -221,21 +221,21 @@ const handleGenerate = () => {
 }
 
 const handleModalGenerate = async (selectedItems) => {
-  // TODO: 实现实际的生成逻辑
+  // TODO: implement actual generation logic
 }
 
-// 获取URL参数中的token
+// Get the token from URL query parameters
 const getToken = () => {
   const urlParams = new URLSearchParams(window.location.search)
   return urlParams.get('token')
 }
 
-// 调用MCP工具（使用共享的方法）
+// Call an MCP tool (using the shared method)
 const callMcpTool = async (toolName, params = {}) => {
   return await callDeviceMcpTool(toolName, params)
 }
 
-// 处理开始在线烧录
+// Handle the start of online flashing
 const handleStartFlash = async (flashData) => {
   const { blob, onProgress, onComplete, onError } = flashData
 
@@ -245,7 +245,7 @@ const handleStartFlash = async (flashData) => {
       throw new Error(t('flashProgress.authTokenMissing'))
     }
 
-    // 步骤1: 检查设备状态
+    // Step 1: check device status
     onProgress(5, t('flashProgress.checkingDeviceStatus'))
     try {
       const deviceStatus = await callMcpTool('self.get_device_status')
@@ -253,30 +253,30 @@ const handleStartFlash = async (flashData) => {
         throw new Error(t('flashProgress.deviceOfflineOrUnresponsive', { error: t('flashProgress.unableToGetDeviceStatus') }))
       }
     } catch (error) {
-      console.error('检查设备状态失败:', error)
+      console.error('Failed to check device status:', error)
       onError(t('flashProgress.deviceOfflineOrUnresponsive', { error: error.message }))
       return
     }
 
-    // 步骤2: 初始化WebSocket传输并获取下载URL
+    // Step 2: initialize WebSocket transfer and obtain the download URL
     onProgress(15, t('flashProgress.initializingTransferService'))
     webSocketTransfer.value = new WebSocketTransfer(token)
 
-    // 创建一个Promise来等待下载URL准备好
+    // Create a Promise that resolves once the download URL is ready
     let downloadUrlReady = null
     const downloadUrlPromise = new Promise((resolve, reject) => {
       downloadUrlReady = resolve
     })
 
-    // 创建一个Promise来等待transfer_started事件
+    // Create a Promise that resolves when the transfer_started event is received
     let transferStartedResolver = null
     const transferStartedPromise = new Promise((resolve, reject) => {
       transferStartedResolver = resolve
     })
 
-    // 初始化WebSocket会话（只建立连接和获取URL）
+    // Initialize the WebSocket session (only establishes connection and obtains URL)
     webSocketTransfer.value.onTransferStarted = () => {
-      // 当收到transfer_started事件时，resolve等待的Promise
+      // When transfer_started is received, resolve the waiting Promise
       if (transferStartedResolver) {
         transferStartedResolver()
         transferStartedResolver = null
@@ -286,11 +286,11 @@ const handleStartFlash = async (flashData) => {
     await webSocketTransfer.value.initializeSession(
       blob,
       (progress, step) => {
-        // 初始化进度：15-30
+        // Initialization progress: 15-30
         onProgress(15 + progress * 0.75, step)
       },
       (error) => {
-        console.error('WebSocket初始化失败:', error)
+        console.error('WebSocket initialization failed:', error)
         onError(t('flashProgress.initializeTransferFailed', { error: error.message }))
       },
       (downloadUrl) => {
@@ -298,46 +298,46 @@ const handleStartFlash = async (flashData) => {
       }
     )
 
-    // 等待下载URL准备好
+    // Wait for the download URL to be ready
     const downloadUrl = await downloadUrlPromise
 
-    // 步骤3: 设置设备的下载URL
+    // Step 3: set the device's download URL
     onProgress(30, t('flashProgress.settingDeviceDownloadUrl'))
     try {
       await callMcpTool('self.assets.set_download_url', {
         url: downloadUrl
       })
     } catch (error) {
-      console.error('设置下载URL失败:', error)
+      console.error('Failed to set download URL:', error)
       onError(t('flashProgress.setDownloadUrlFailed', { error: error.message }))
       return
     }
 
-    // 步骤4: 重启设备
+    // Step 4: reboot the device
     onProgress(40, t('flashProgress.rebootingDevice'))
-    // reboot指令没有返回值，不需要等待，直接调用
+    // The reboot command has no return value; no need to await, just call
     callMcpTool('self.reboot').catch(error => {
-      console.warn('reboot指令调用警告（设备可能已重启）:', error)
-      // 即使reboot失败，也继续流程，因为设备可能已经重启
+      console.warn('reboot command warning (device may have already rebooted):', error)
+      // Continue the flow even if reboot fails, because the device may already be rebooting
     })
 
-    // 步骤5: 等待设备重启并建立HTTP连接（通过transfer_started事件）
+    // Step 5: wait for device reboot and HTTP connection (via transfer_started event)
     onProgress(50, t('flashProgress.waitingForDeviceReboot'))
 
-    // 等待transfer_started事件，设置60秒超时
+    // Wait for the transfer_started event with a 60-second timeout
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error(t('flashProgress.deviceRebootTimeout'))), 60000)
     })
 
     await Promise.race([transferStartedPromise, timeoutPromise])
 
-    // 步骤6: 开始实际的文件传输
+    // Step 6: start the actual file transfer
     onProgress(60, t('flashProgress.startingFileTransfer'))
 
-    // 设备已准备好，直接开始传输（transfer_started已收到，sendFileData会立即执行）
+    // Device is ready; start transfer directly (transfer_started received, sendFileData runs immediately)
     await webSocketTransfer.value.startTransfer(
       (progress, step) => {
-        // 文件传输进度：60-100
+        // File transfer progress: 60-100
         const adjustedProgress = 60 + (progress * 0.4)
         onProgress(Math.round(adjustedProgress), step)
       },
@@ -349,16 +349,16 @@ const handleStartFlash = async (flashData) => {
       }
     )
 
-    // 清理回调引用
+    // Clear callback reference
     webSocketTransfer.value.onTransferStarted = null
 
   } catch (error) {
-    console.error('在线烧录失败:', error)
+    console.error('Online flashing failed:', error)
     onError(t('flashProgress.onlineFlashFailed', { error: error.message }))
   }
 }
 
-// 处理取消烧录
+// Handle flash cancellation
 const handleCancelFlash = () => {
   if (webSocketTransfer.value) {
     webSocketTransfer.value.cancel()
@@ -371,39 +371,39 @@ const handleThemeTabChange = (tabId) => {
   activeThemeTab.value = tabId
 }
 
-// 从存储加载配置
+// Load config from storage
 const loadConfigFromStorage = async () => {
   try {
     isLoading.value = true
     const storedData = await configStorage.loadConfig()
-    
+
     if (storedData) {
-      // 恢复配置（但不恢复 step 和 tab，总是从第一步开始）
+      // Restore config (but don't restore step/tab; always start at step one)
       config.value = storedData.config
-      // 始终从第一步开始
+      // Always start at the first step
       currentStep.value = 0
       activeThemeTab.value = 'wakeword'
-      hasStoredConfig.value = true // 显示"检测到已保存的配置"提示
-      isAutoSaveEnabled.value = true // 启用自动保存
-      
-      // 检查并清除旧的表情数据结构（不兼容旧版本）
+      hasStoredConfig.value = true // Show the "Saved configuration detected" notice
+      isAutoSaveEnabled.value = true // Enable auto-save
+
+      // Check and clear legacy emoji data structure (incompatible with old versions)
       await cleanupLegacyEmojiData()
-      
-      // 清除之前的定时器
+
+      // Clear any previous timer
       if (autoHideTimer.value) {
         clearTimeout(autoHideTimer.value)
       }
-      
-      // 设置5秒后自动隐藏提示
+
+      // Auto-hide the notice after 5 seconds
       autoHideTimer.value = setTimeout(() => {
         hasStoredConfig.value = false
       }, 5000)
-      
-      // 设置 AssetsBuilder 的配置（非严格模式，允许先恢复文件再校验）
+
+      // Set AssetsBuilder config (non-strict mode: allow restoring files first, then validating)
       assetsBuilder.setConfig(config.value, { strict: false })
       await assetsBuilder.restoreAllResourcesFromStorage(config.value)
-      
-      // 触发一次浅拷贝以刷新引用，避免渲染时对占位值执行 createObjectURL
+
+      // Trigger a shallow copy to refresh references, avoiding createObjectURL on placeholder values during render
       try {
         const emojiCustom = config.value?.theme?.emoji?.custom || {}
         const images = emojiCustom.images || {}
@@ -426,7 +426,7 @@ const loadConfigFromStorage = async () => {
           }
         }
       } catch (e) {
-        console.error('刷新表情配置引用失败:', e)
+        console.error('Failed to refresh emoji config references:', e)
       }
       
     } else {
@@ -434,7 +434,7 @@ const loadConfigFromStorage = async () => {
       isAutoSaveEnabled.value = false
     }
   } catch (error) {
-    console.error('加载配置失败:', error)
+    console.error('Failed to load configuration:', error)
     hasStoredConfig.value = false
     isAutoSaveEnabled.value = false
   } finally {
@@ -442,86 +442,86 @@ const loadConfigFromStorage = async () => {
   }
 }
 
-// 清理旧版本表情数据（强制使用新的 hash 结构）
+// Clean up legacy emoji data (force the new hash-based structure)
 const cleanupLegacyEmojiData = async () => {
   try {
     const emojiCustom = config.value?.theme?.emoji?.custom
     if (!emojiCustom) return
-    
-    // 检查是否使用旧结构（有 images 但没有 fileMap 和 emotionMap）
+
+    // Check whether the legacy structure is in use (images but no fileMap / emotionMap)
     const hasImages = Object.keys(emojiCustom.images || {}).length > 0
     const hasFileMap = emojiCustom.fileMap && Object.keys(emojiCustom.fileMap).length > 0
     const hasEmotionMap = emojiCustom.emotionMap && Object.keys(emojiCustom.emotionMap).length > 0
     const hasOldStructure = hasImages && (!hasFileMap || !hasEmotionMap)
-    
+
     if (hasOldStructure) {
-      console.warn('⚠️ 检测到旧版本的表情数据结构（不兼容）')
-      console.log('正在清理旧数据...')
-      
-      // 清除存储中的旧表情文件
+      console.warn('Detected legacy emoji data structure (incompatible)')
+      console.log('Cleaning up legacy data...')
+
+      // Remove legacy emoji files from storage
       try {
         const oldEmotions = Object.keys(emojiCustom.images || {})
         for (const emotion of oldEmotions) {
           await configStorage.deleteFile(`emoji_${emotion}`)
         }
-        console.log(`已删除 ${oldEmotions.length} 个旧表情文件`)
+        console.log(`Deleted ${oldEmotions.length} legacy emoji files`)
       } catch (error) {
-        console.warn('清理旧表情文件时出错:', error)
+        console.warn('Error while cleaning up legacy emoji files:', error)
       }
-      
-      // 重置为新的空结构
+
+      // Reset to the new empty structure
       config.value.theme.emoji.custom = {
         size: emojiCustom.size || { width: 64, height: 64 },
         images: {},
         fileMap: {},
         emotionMap: {}
       }
-      
-      // 如果当前在使用自定义表情，重置为未选择状态
+
+      // If custom emojis were currently in use, reset the selection
       if (config.value.theme.emoji.type === 'custom') {
         config.value.theme.emoji.type = ''
-        console.log('已重置表情类型，请重新选择')
+        console.log('Emoji type reset; please choose again')
       }
-      
-      // 立即保存清理后的配置
+
+      // Persist the cleaned configuration immediately
       await saveConfigToStorage()
-      
-      console.log('✅ 旧表情数据已完全清除')
-      
-      // 友好的用户提示
+
+      console.log('Legacy emoji data fully cleared')
+
+      // Friendly notice to the user
       setTimeout(() => {
-        alert('检测到旧版本的表情数据结构已被清除。\n\n新版本使用文件去重技术，可以节省存储空间。\n\n请重新上传自定义表情图片。')
+        alert('A legacy emoji data structure was detected and cleared.\n\nThe new version uses file deduplication to save storage space.\n\nPlease re-upload your custom emoji images.')
       }, 500)
     }
   } catch (error) {
-    console.error('清理旧表情数据时出错:', error)
+    console.error('Error while cleaning up legacy emoji data:', error)
   }
 }
 
-// 保存配置到存储
+// Save configuration to storage
 const saveConfigToStorage = async () => {
   try {
     await configStorage.saveConfig(config.value)
   } catch (error) {
-    console.error('保存配置失败:', error)
+    console.error('Failed to save configuration:', error)
   }
 }
 
-// 确认重新开始
+// Confirm restart
 const confirmReset = async () => {
   try {
     isResetting.value = true
-    
-    // 清理 AssetsBuilder 的存储数据
+
+    // Clean up AssetsBuilder's stored data
     await assetsBuilder.clearAllStoredData()
-    
-    // 保存当前的芯片配置
+
+    // Preserve the current chip configuration
     const currentChipConfig = {
       model: config.value.chip.model,
       display: { ...config.value.chip.display }
     }
     
-    // 重置配置到默认值，但保留芯片配置
+    // Reset config to defaults while preserving the chip configuration
     config.value = {
       chip: currentChipConfig,
       theme: {
@@ -532,7 +532,7 @@ const confirmReset = async () => {
             name: '',
             command: '',
             threshold: 20,
-            model: 'mn6_cn'
+            model: 'mn6_en'
           }
         },
         font: {
@@ -571,41 +571,41 @@ const confirmReset = async () => {
       }
     }
     
-    // 重置步骤和状态
+    // Reset the step and related state
     currentStep.value = 0
     activeThemeTab.value = 'wakeword'
     hasStoredConfig.value = false
     isAutoSaveEnabled.value = false
-    
+
   } catch (error) {
-    console.error('重置配置失败:', error)
+    console.error('Failed to reset configuration:', error)
     alert(t('errors.resetFailed'))
   } finally {
     isResetting.value = false
   }
 }
 
-// 监听配置变化，自动保存
+// Watch for configuration changes and auto-save
 watch(config, async (newConfig) => {
   if (!isLoading.value && isAutoSaveEnabled.value) {
     await saveConfigToStorage()
   }
 }, { deep: true })
 
-// 页面加载时初始化
+// Initialize on page load
 onMounted(async () => {
   await configStorage.initialize()
   await loadConfigFromStorage()
 })
 
-// 组件卸载时清除定时器
+// Clear the timer when the component unmounts
 onUnmounted(() => {
   if (autoHideTimer.value) {
     clearTimeout(autoHideTimer.value)
   }
 })
 
-// 修改关闭按钮逻辑
+// Close-button logic
 const closeConfigNotice = () => {
   hasStoredConfig.value = false
   if (autoHideTimer.value) {
@@ -613,14 +613,14 @@ const closeConfigNotice = () => {
   }
 }
 
-// 重置自动隐藏定时器（鼠标悬停时调用）
+// Reset the auto-hide timer (invoked on mouse hover)
 const resetAutoHideTimer = () => {
-  // 清除之前的定时器
+  // Clear the previous timer
   if (autoHideTimer.value) {
     clearTimeout(autoHideTimer.value)
   }
 
-  // 设置新的5秒定时器
+  // Start a new 5-second timer
   autoHideTimer.value = setTimeout(() => {
     hasStoredConfig.value = false
   }, 5000)

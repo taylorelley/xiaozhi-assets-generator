@@ -9,11 +9,11 @@
       </p>
     </div>
 
-    <!-- 加载中状态 -->
+    <!-- Loading state -->
     <div v-if="isLoadingConfig" class="space-y-4">
       <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
         <div class="flex items-center justify-center space-x-3">
-          <!-- 加载动画 -->
+          <!-- Loading spinner -->
           <svg class="animate-spin h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -26,7 +26,7 @@
       </div>
     </div>
 
-    <!-- 设备在线：显示自动读取的配置 -->
+    <!-- Device is online: show automatically-loaded configuration -->
     <div v-else-if="isDeviceOnline && deviceConfigLoaded" class="space-y-4">
       <div class="bg-green-50 border-2 border-green-200 rounded-lg p-4">
         <div class="flex items-start justify-between mb-3">
@@ -62,7 +62,7 @@
         </div>
       </div>
 
-      <!-- 可选：手动修改配置 -->
+      <!-- Optional: edit the configuration manually -->
       <div class="border border-gray-200 rounded-lg p-4">
         <button 
           @click="toggleManualEdit"
@@ -75,15 +75,15 @@
           {{ showManualEdit ? $t('chipConfig.collapseManual') : $t('chipConfig.manualEdit') }}
         </button>
         
-        <!-- 使用可复用的配置表单 -->
+        <!-- Use the reusable config form -->
         <div v-if="showManualEdit" class="mt-4">
           <ConfigForm :config="customConfig" /></div>
       </div>
     </div>
 
-    <!-- 设备离线或加载失败：显示手动配置 -->
+    <!-- Device offline or load failed: show manual configuration -->
     <div v-else class="space-y-4">
-      <!-- 提示信息 -->
+      <!-- Hint message -->
       <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
         <div class="flex items-start">
           <svg class="w-5 h-5 text-yellow-600 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -98,14 +98,14 @@
         </div>
       </div>
 
-      <!-- 手动配置表单 -->
+      <!-- Manual configuration form -->
       <div class="border-2 border-gray-300 rounded-lg p-4">
         <h3 class="text-lg font-medium text-gray-900 mb-4">{{ $t('chipConfig.manualConfigTitle') }}</h3>
         <ConfigForm :config="customConfig" :show-required="true" />
       </div>
     </div>
 
-    <!-- 下一步按钮 -->
+    <!-- Next-step button -->
     <div class="flex justify-end">
       <button 
         @click="handleNext"
@@ -141,7 +141,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'next'])
 
-// 芯片型号选项常量
+// Chip-model option constants
 const CHIP_OPTIONS = computed(() => [
   { value: '', label: t('chipConfig.selectChip') },
   { value: 'esp32s3', label: 'ESP32-S3' },
@@ -153,7 +153,7 @@ const CHIP_OPTIONS = computed(() => [
   { value: 'others', label: t('common.other') }
 ])
 
-// 定义可复用的配置表单组件（使用渲染函数）
+// Define a reusable config form component (render function)
 const ConfigForm = {
   name: 'ConfigForm',
   props: {
@@ -169,7 +169,7 @@ const ConfigForm = {
   render() {
     const t = this.$t
     return h('div', { class: 'grid grid-cols-1 md:grid-cols-3 gap-4' }, [
-      // 芯片型号选择
+      // Chip-model selection
       h('div', [
         h('label', { class: 'block text-sm font-medium text-gray-700 mb-2' }, [
           t('chipConfig.chipRequired') + ' ',
@@ -184,7 +184,7 @@ const ConfigForm = {
         ))
       ]),
 
-      // 屏幕宽度
+      // Screen width
       h('div', [
         h('label', { class: 'block text-sm font-medium text-gray-700 mb-2' }, [
           t('chipConfig.widthRequired') + ' ',
@@ -201,7 +201,7 @@ const ConfigForm = {
         })
       ]),
 
-      // 屏幕高度
+      // Screen height
       h('div', [
         h('label', { class: 'block text-sm font-medium text-gray-700 mb-2' }, [
           t('chipConfig.heightRequired') + ' ',
@@ -221,16 +221,16 @@ const ConfigForm = {
   }
 }
 
-// 使用共享的设备状态
+// Use the shared device status
 const {
   deviceInfo,
   isDeviceOnline,
   hasToken
 } = useDeviceStatus()
 
-// 本地状态
-// 如果有 token，初始状态应该是加载中（因为会尝试连接设备）
-const isLoadingConfig = ref(hasToken.value) 
+// Local state
+// If a token is present, start in the loading state (the app will try to connect to the device)
+const isLoadingConfig = ref(hasToken.value)
 const deviceConfigLoaded = ref(false)
 const loadingError = ref('')
 const showManualEdit = ref(false)
@@ -244,7 +244,7 @@ const customConfig = ref({
   }
 })
 
-// 芯片型号映射（将设备返回的型号映射到选项值）
+// Chip-model mapping (maps values returned by the device to option values)
 const chipModelMapping = {
   'ESP32-S3': 'esp32s3',
   'ESP32S3': 'esp32s3',
@@ -259,12 +259,12 @@ const chipModelMapping = {
   'ESP32': 'esp32'
 }
 
-// 从设备信息加载配置
+// Load configuration from device info
 const loadConfigFromDevice = () => {
   try {
-    // 检查设备是否在线
+    // Check whether the device is online
     if (!isDeviceOnline.value) {
-      // 设备离线时，如果还在加载状态，不立即失败（可能正在连接）
+      // When offline, avoid failing immediately if we are still in the loading state (connection may still be in progress)
       if (!isLoadingConfig.value) {
         loadingError.value = t('chipConfig.deviceOffline')
         deviceConfigLoaded.value = false
@@ -272,33 +272,33 @@ const loadConfigFromDevice = () => {
       return false
     }
 
-    // 获取芯片型号
+    // Get the chip model
     const chipModel = deviceInfo.value.chip?.model
-    if (!chipModel || chipModel === '未知') {
-      // 如果还在加载期间（5秒超时前），不立即失败，等待数据更新
-      // 只在明确失败或超时后才设置错误
+    if (!chipModel || chipModel === 'Unknown') {
+      // While still loading (before the 5-second timeout) don't fail immediately; wait for data to update.
+      // Only set an error when we've clearly failed or timed out.
       return false
     }
 
-    // 映射芯片型号
+    // Map the chip model
     let mappedChip = chipModelMapping[chipModel.toUpperCase()] ||
                      chipModelMapping[chipModel] ||
                      chipModel.toLowerCase().replace(/-/g, '')
 
-    // 如果映射结果不在已知选项中，设置为 others
+    // If the mapped value is not in the known list, fall back to `others`
     const validChipModels = ['esp32s3', 'esp32c3', 'esp32c5', 'esp32p4', 'esp32c6', 'esp32', 'others']
     if (!validChipModels.includes(mappedChip)) {
       mappedChip = 'others'
     }
 
-    // 获取屏幕分辨率
+    // Get the screen resolution
     const resolution = deviceInfo.value.screen?.resolution
-    if (!resolution || resolution === '未知') {
-      // 同样，在加载期间不立即失败
+    if (!resolution || resolution === 'Unknown') {
+      // Likewise, don't fail immediately while still loading
       return false
     }
 
-    // 解析分辨率
+    // Parse the resolution
     const [width, height] = resolution.split('x').map(Number)
     if (!width || !height || isNaN(width) || isNaN(height)) {
       loadingError.value = t('chipConfig.resolutionFormatError')
@@ -307,7 +307,7 @@ const loadConfigFromDevice = () => {
       return false
     }
 
-    // 设置配置
+    // Apply the configuration
     customConfig.value = {
       model: mappedChip,
       display: {
@@ -317,7 +317,7 @@ const loadConfigFromDevice = () => {
       }
     }
 
-    // 更新父组件
+    // Notify the parent component
     emit('update:modelValue', {
       model: mappedChip,
       display: {
@@ -330,11 +330,11 @@ const loadConfigFromDevice = () => {
     deviceConfigLoaded.value = true
     loadingError.value = ''
     isLoadingConfig.value = false
-    console.log('✓ 设备配置加载成功:', { chip: mappedChip, width, height })
+    console.log('Device configuration loaded:', { chip: mappedChip, width, height })
     return true
 
   } catch (error) {
-    console.error('加载设备配置失败:', error)
+    console.error('Failed to load device configuration:', error)
     loadingError.value = t('chipConfig.loadingError')
     deviceConfigLoaded.value = false
     isLoadingConfig.value = false
@@ -342,7 +342,7 @@ const loadConfigFromDevice = () => {
   }
 }
 
-// 计算属性
+// Computed properties
 const hasValidConfig = computed(() => {
   return customConfig.value.model && 
          customConfig.value.display.width && 
@@ -358,19 +358,19 @@ const currentDisplay = computed(() => {
   return customConfig.value.display
 })
 
-// 切换手动编辑
+// Toggle manual edit mode
 const toggleManualEdit = () => {
   showManualEdit.value = !showManualEdit.value
 }
 
-// 下一步
+// Next step
 const handleNext = () => {
   if (hasValidConfig.value) {
     emit('next')
   }
 }
 
-// 监听自定义配置变化
+// Watch for changes to the custom configuration
 watch(() => customConfig.value, (newVal) => {
   emit('update:modelValue', {
     model: newVal.model,
@@ -378,86 +378,86 @@ watch(() => customConfig.value, (newVal) => {
   })
 }, { deep: true })
 
-// 监听设备在线状态变化
+// Watch for changes to the device online status
 watch(() => isDeviceOnline.value, (online) => {
   if (online && !deviceConfigLoaded.value) {
-    // 设备上线后立即尝试加载配置（移除不必要的延迟）
+    // Attempt to load configuration as soon as the device comes online (no unnecessary delay)
     isLoadingConfig.value = true
-    loadingError.value = '' // 清除之前的超时错误
-    // 使用 nextTick 确保状态更新后再加载
+    loadingError.value = '' // Clear any previous timeout error
+    // Use a short timeout to ensure state is synced before loading
     setTimeout(() => {
       loadConfigFromDevice()
-    }, 100) // 减少到100ms，仅用于确保状态同步
+    }, 100) // Reduced to 100ms, only to ensure state synchronization
   }
 })
 
-// 监听设备信息变化
+// Watch for changes to the device info
 watch(() => [deviceInfo.value.chip, deviceInfo.value.screen], () => {
   if (isDeviceOnline.value && !deviceConfigLoaded.value) {
     loadConfigFromDevice()
   }
 }, { deep: true })
 
-// 组件挂载时尝试加载设备配置
+// On mount, attempt to load the device configuration
 onMounted(() => {
-  // 如果没有 token，直接使用手动配置模式
+  // Without a token, fall back to manual configuration immediately
   if (!hasToken.value) {
     isLoadingConfig.value = false
     loadingError.value = t('chipConfig.manualConfigRequired')
-    console.log('⚠ 未检测到设备连接，使用手动配置模式')
+    console.log('No device connection detected; using manual configuration mode')
     return
   }
 
-  // 检查是否已经有有效的设备信息（可能是从其他页面返回）
-  const hasValidDeviceInfo = isDeviceOnline.value && 
-                             deviceInfo.value.chip && 
-                             deviceInfo.value.chip.model !== '未知' &&
-                             deviceInfo.value.screen && 
-                             deviceInfo.value.screen.resolution !== '未知'
-  
+  // Check whether we already have valid device info (e.g. from another page)
+  const hasValidDeviceInfo = isDeviceOnline.value &&
+                             deviceInfo.value.chip &&
+                             deviceInfo.value.chip.model !== 'Unknown' &&
+                             deviceInfo.value.screen &&
+                             deviceInfo.value.screen.resolution !== 'Unknown'
+
   if (hasValidDeviceInfo) {
-    // 已有设备信息，立即加载（无延迟）
-    console.log('✓ 检测到已缓存的设备信息，立即加载')
+    // Device info already available: load immediately
+    console.log('Cached device info detected; loading immediately')
     loadConfigFromDevice()
   } else if (isDeviceOnline.value) {
-    // 设备在线但信息未加载完成，短暂延迟后尝试
-    console.log('⏳ 设备在线，等待设备信息加载...')
+    // Device online but info not yet loaded; retry after a short delay
+    console.log('Device online, waiting for device info to load...')
     isLoadingConfig.value = true
     setTimeout(() => {
       loadConfigFromDevice()
     }, 500)
-    
-    // 设置10秒超时
+
+    // Set a 10-second timeout
     setTimeout(() => {
       if (isLoadingConfig.value && !deviceConfigLoaded.value) {
-        // 额外检查：确保设备仍然在线，且确实没有加载成功
+        // Extra check: make sure the device is still online and we really failed to load
         if (isDeviceOnline.value) {
           isLoadingConfig.value = false
-          if (!deviceInfo.value.chip || deviceInfo.value.chip.model === '未知') {
+          if (!deviceInfo.value.chip || deviceInfo.value.chip.model === 'Unknown') {
             loadingError.value = t('chipConfig.chipModelError')
-          } else if (!deviceInfo.value.screen || deviceInfo.value.screen.resolution === '未知') {
+          } else if (!deviceInfo.value.screen || deviceInfo.value.screen.resolution === 'Unknown') {
             loadingError.value = t('chipConfig.resolutionError')
           } else {
             loadingError.value = t('chipConfig.timeoutError')
           }
-          console.warn('⚠ 设备配置加载超时:', loadingError.value)
+          console.warn('Device configuration loading timed out:', loadingError.value)
         }
       }
-    }, 10000) // 延长到10秒
+    }, 10000) // Extended to 10 seconds
   } else {
-    // 设备暂时离线，保持加载状态，等待设备上线
-    console.log('⏳ 等待设备连接...')
+    // Device currently offline: stay in the loading state and wait for it to come online
+    console.log('Waiting for device connection...')
     isLoadingConfig.value = true
-    
-    // 设置10秒超时，如果还未连接则显示手动配置
+
+    // Set a 10-second timeout; if still not connected, show the manual configuration form
     setTimeout(() => {
       if (isLoadingConfig.value && !deviceConfigLoaded.value && !isDeviceOnline.value) {
-        // 额外检查：只有在设备确实还未上线时才显示超时错误
+        // Extra check: only show the timeout error if the device really hasn't come online
         isLoadingConfig.value = false
         loadingError.value = t('chipConfig.manualConfigHint')
-        console.warn('⚠ 等待设备连接超时')
+        console.warn('Timed out while waiting for device connection')
       }
-    }, 10000) // 延长到10秒，给设备更多连接时间
+    }, 10000) // Extended to 10 seconds to give the device more time to connect
   }
 })
 </script>

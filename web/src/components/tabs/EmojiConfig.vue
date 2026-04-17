@@ -5,7 +5,7 @@
       <p class="text-gray-600">{{ $t('emojiConfig.description') }}</p>
     </div>
 
-    <!-- 表情类型选择 -->
+    <!-- Emoji type selector -->
     <div class="space-y-4">
       <div class="flex flex-wrap gap-3">
         <button
@@ -81,7 +81,7 @@
             </div>
           </div>
           
-          <!-- 表情预览网格 -->
+          <!-- Emoji preview grid -->
           <div class="grid grid-cols-7 gap-1 justify-items-center overflow-hidden">
             <div
               v-for="emotion in pack.preview"
@@ -105,9 +105,9 @@
     <div v-if="modelValue.type === 'custom'" class="space-y-6">
       <h4 class="font-medium text-gray-900">{{ $t('emojiConfig.customEmojiPackConfig') }}</h4>
       
-      <!-- 基本配置 -->
+      <!-- Basic configuration -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- 图片尺寸 -->
+        <!-- Image dimensions -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('emojiConfig.maxImageWidth') }}</label>
           <input
@@ -131,7 +131,7 @@
         </div>
       </div>
 
-      <!-- 表情图片上传 -->
+      <!-- Emoji image upload -->
       <div class="space-y-4">
         <h5 class="font-medium text-gray-900">{{ $t('emojiConfig.uploadEmojiImages') }}</h5>
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
@@ -220,9 +220,9 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 /**
- * 计算文件的 SHA-256 hash
- * @param {File} file - 文件对象
- * @returns {Promise<string>} 文件的 hash 值
+ * Compute the SHA-256 hash of a file
+ * @param {File} file - The file object
+ * @returns {Promise<string>} The hash of the file
  */
 const calculateFileHash = async (file) => {
   const buffer = await file.arrayBuffer()
@@ -267,7 +267,7 @@ const presetEmojis = [
   }
 ]
 
-// 使用计算属性来获取翻译后的表情名称
+// Use a computed property to get translated emotion names
 const emotionList = computed(() => [
   { key: 'neutral', name: t('emojiConfig.emotions.neutral'), emoji: '😶' },
   { key: 'happy', name: t('emojiConfig.emotions.happy'), emoji: '🙂' },
@@ -297,20 +297,20 @@ const localCustom = ref({
 })
 
 const setEmojiType = (type) => {
-  // 避免重复设置相同类型
+  // Avoid re-applying the same type
   if (props.modelValue.type === type) return
-  
+
   const newValue = { ...props.modelValue, type }
-  
+
   if (type === 'none') {
-    // 选择无表情包
+    // Selected "no emoji pack"
     newValue.preset = ''
     newValue.custom = {
       ...props.modelValue.custom,
       images: props.modelValue.custom.images || {}
     }
   } else if (type === 'preset') {
-    // 切换到预设表情时，保留自定义表情数据
+    // Switching to preset emojis while preserving custom emoji data
     newValue.preset = props.modelValue.preset || 'twemoji32'
     newValue.custom = {
       ...props.modelValue.custom,
@@ -328,10 +328,10 @@ const setEmojiType = (type) => {
 }
 
 const selectPresetEmoji = (id) => {
-  // 避免重复选择相同预设
+  // Avoid re-selecting the same preset
   if (props.modelValue.preset === id) return
-  
-  // 选择不同的{{ $t('emojiConfig.presetEmojiPack') }}时，保留自定义表情数据
+
+  // When selecting a different preset emoji pack, preserve custom emoji data
   emit('update:modelValue', {
     ...props.modelValue,
     preset: id,
@@ -366,32 +366,32 @@ const updateEmojiImage = async (emotionKey, file) => {
     return
   }
 
-  // 计算文件 hash
+  // Compute the file hash
   const fileHash = await calculateFileHash(file)
-  
-  // 获取或初始化 fileMap 和 emotionMap
+
+  // Get or initialize fileMap and emotionMap
   const currentCustom = props.modelValue.custom || {}
   const fileMap = { ...(currentCustom.fileMap || {}) }
   const emotionMap = { ...(currentCustom.emotionMap || {}) }
   const images = { ...(currentCustom.images || {}) }
-  
-  // 检查是否已经存在相同的文件
+
+  // Check whether the same file already exists
   let existingEmotions = []
   for (const [emotion, hash] of Object.entries(emotionMap)) {
     if (hash === fileHash && emotion !== emotionKey) {
       existingEmotions.push(emotion)
     }
   }
-  
-  // 如果检测到相同文件，提示用户
+
+  // If a duplicate file is detected, notify the user
   if (existingEmotions.length > 0) {
     console.log(t('emojiConfig.sharedFileMessage', { emotionKey, existingEmotions: existingEmotions.join(', ') }))
   }
-  
-  // 更新映射关系
+
+  // Update the mappings
   fileMap[fileHash] = file
   emotionMap[emotionKey] = fileHash
-  images[emotionKey] = file  // 保持向后兼容
+  images[emotionKey] = file  // Maintain backwards compatibility
   
   emit('update:modelValue', {
     ...props.modelValue,
@@ -399,16 +399,16 @@ const updateEmojiImage = async (emotionKey, file) => {
       ...currentCustom,
       size: localCustom.value.size,
       images,
-      fileMap,      // 新增：hash -> File
-      emotionMap    // 新增：emotion -> hash
+      fileMap,      // New: hash -> File
+      emotionMap    // New: emotion -> hash
     }
   })
 
-  // 自动保存表情文件到存储（按 hash 保存，避免重复）
+  // Automatically save the emoji file to storage (keyed by hash to avoid duplicates)
   await StorageHelper.saveEmojiFile(`hash_${fileHash}`, file, {
     size: localCustom.value.size,
     format: fileExtension,
-    emotions: [...existingEmotions, emotionKey]  // 记录使用该文件的所有表情
+    emotions: [...existingEmotions, emotionKey]  // Record every emotion that uses this file
   })
 }
 
@@ -418,20 +418,20 @@ const removeImage = async (emotionKey) => {
   const newEmotionMap = { ...(currentCustom.emotionMap || {}) }
   const newFileMap = { ...(currentCustom.fileMap || {}) }
   
-  // 获取要删除的表情对应的 hash
+  // Get the hash that corresponds to the emotion being removed
   const fileHash = newEmotionMap[emotionKey]
-  
-  // 删除表情到 hash 的映射
+
+  // Remove the emotion -> hash mapping
   delete newImages[emotionKey]
   delete newEmotionMap[emotionKey]
-  
-  // 检查是否还有其他表情使用同一个文件
+
+  // Check whether any other emotion still uses the same file
   const otherEmotionsUsingFile = Object.values(newEmotionMap).filter(h => h === fileHash)
-  
-  // 如果没有其他表情使用这个文件，则删除文件本身
+
+  // If no other emotion uses this file, delete the file itself
   if (otherEmotionsUsingFile.length === 0 && fileHash) {
     delete newFileMap[fileHash]
-    // 删除存储中的文件
+    // Delete the file from storage
     await StorageHelper.deleteEmojiFile(`hash_${fileHash}`)
     console.log(t('emojiConfig.fileDeleted', { fileHash }))
   } else {
@@ -460,7 +460,7 @@ const getImagePreview = (emotionKey) => {
     return getPresetEmojiUrl(props.modelValue.preset, emotionKey)
   } else {
     const file = props.modelValue.custom.images[emotionKey]
-    // 仅当为 File 或 Blob 时创建预览，避免恢复后占位对象导致报错
+    // Only create a preview when the value is a File or Blob; placeholder objects restored from storage would otherwise throw
     if (file instanceof File || file instanceof Blob) {
       return URL.createObjectURL(file)
     }
@@ -470,16 +470,16 @@ const getImagePreview = (emotionKey) => {
 
 const handleImageError = (event) => {
   console.warn(t('emojiConfig.imageLoadFailed'), event.target.src)
-  // 可以设置一个默认的fallback图片
+  // A default fallback image could be set here
   event.target.style.display = 'none'
 }
 
-// 移除可能导致无限递归的 watch
-// 使用 computed 来同步 localCustom，避免双向绑定冲突
+// Avoid watchers that can cause infinite recursion
+// Sync localCustom via computed to avoid two-way binding conflicts
 watch(() => localCustom.value.size, (newSize) => {
   if (props.modelValue.type === 'custom') {
     const currentCustom = props.modelValue.custom
-    // 只在尺寸实际值改变时触发更新
+    // Only trigger an update when the size actually changes
     if (JSON.stringify(currentCustom.size) !== JSON.stringify(newSize)) {
       emit('update:modelValue', {
         ...props.modelValue,
@@ -492,7 +492,7 @@ watch(() => localCustom.value.size, (newSize) => {
   }
 }, { deep: true })
 
-// 初始化 localCustom
+// Initialize localCustom
 if (props.modelValue.custom.size) {
   localCustom.value = {
     size: { ...props.modelValue.custom.size }

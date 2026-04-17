@@ -1,167 +1,167 @@
-# 配置持久化存储功能说明
+# Configuration persistence features
 
-## 功能概述
+## Overview
 
-本项目新增了基于 IndexedDB 的配置和文件持久化存储功能，让用户在刷新页面后仍能保持之前的配置状态和上传的文件。
+This project adds IndexedDB-backed persistence for configuration data and uploaded files, so that users can keep their previous configuration state and uploaded files even after refreshing the page.
 
-## 主要特性
+## Key features
 
-### 1. 自动配置保存
-- **实时保存**：用户修改配置时自动保存到 IndexedDB
-- **智能检测**：页面加载时自动检测是否有已保存的配置
-- **状态恢复**：恢复用户的进度位置和主题标签状态
+### 1. Automatic configuration saving
+- **Real-time save**: configuration changes are automatically persisted to IndexedDB
+- **Smart detection**: the app detects existing saved configuration on page load
+- **State restoration**: progress position and theme tab state are restored
 
-### 2. 文件自动存储
-- **字体文件**：自定义字体文件自动保存，包含转换后的字体数据
-- **表情图片**：自定义表情图片自动保存到存储
-- **背景图片**：浅色/深色模式背景图片自动保存
+### 2. Automatic file storage
+- **Font files**: custom font files are saved automatically, including the converted font data
+- **Emoji images**: custom emoji images are saved automatically
+- **Background images**: light/dark mode backgrounds are saved automatically
 
-### 3. 重新开始功能
-- **一键清理**：提供重新开始按钮，确认后清空所有存储数据
-- **安全确认**：包含详细的确认对话框，防止误操作
-- **完整重置**：清理配置、文件和临时数据
+### 3. Restart feature
+- **One-click cleanup**: a restart button wipes all stored data after confirmation
+- **Safe confirmation**: a detailed confirmation dialog helps avoid accidental data loss
+- **Full reset**: clears configuration, files, and temporary data
 
-## 技术实现
+## Technical implementation
 
-### 核心组件
+### Core components
 
 #### ConfigStorage.js
-- IndexedDB 数据库管理
-- 配置存储与恢复
-- 文件二进制存储
-- 临时数据管理
+- IndexedDB database management
+- Configuration storage and restoration
+- Binary file storage
+- Temporary-data management
 
 #### StorageHelper.js
-- 为各组件提供便捷的存储 API
-- 统一的文件保存和删除接口
-- 分类管理不同类型的资源文件
+- Convenient storage APIs for components
+- Unified file-save and file-delete interfaces
+- Categorised management of different resource types
 
-#### AssetsBuilder.js 集成
-- 与存储系统深度集成
-- 自动保存转换后的字体数据
-- 资源文件智能恢复
+#### AssetsBuilder.js integration
+- Deep integration with the storage system
+- Automatically saves converted font data
+- Smart restoration of resource files
 
-### 存储结构
+### Storage schema
 
 ```javascript
-// 数据库：XiaozhiConfigDB
+// Database: XiaozhiConfigDB
 {
-  configs: {      // 配置表
+  configs: {      // Configuration table
     key: 'current_config',
-    config: { ... },           // 完整配置对象
-    currentStep: 1,           // 当前步骤
-    activeThemeTab: 'font',   // 活跃标签
-    timestamp: 1234567890     // 保存时间
+    config: { ... },           // Full configuration object
+    currentStep: 1,            // Current step
+    activeThemeTab: 'font',    // Active tab
+    timestamp: 1234567890      // Save timestamp
   },
-  
-  files: {        // 文件表
+
+  files: {        // Files table
     id: 'custom_font',
-    type: 'font',             // 文件类型
-    name: 'MyFont.ttf',       // 文件名
-    size: 1024,               // 文件大小
-    mimeType: 'font/ttf',     // MIME类型
-    data: ArrayBuffer,        // 文件二进制数据
-    metadata: { ... },        // 元数据
-    timestamp: 1234567890     // 保存时间
+    type: 'font',              // File type
+    name: 'MyFont.ttf',        // Filename
+    size: 1024,                // File size
+    mimeType: 'font/ttf',      // MIME type
+    data: ArrayBuffer,         // File binary data
+    metadata: { ... },         // Metadata
+    timestamp: 1234567890      // Save timestamp
   },
-  
-  temp_data: {    // 临时数据表
+
+  temp_data: {    // Temporary data table
     key: 'converted_font_xxx',
-    type: 'converted_font',   // 数据类型
-    data: ArrayBuffer,        // 转换后数据
-    metadata: { ... },        // 元数据
-    timestamp: 1234567890     // 保存时间
+    type: 'converted_font',    // Data type
+    data: ArrayBuffer,         // Converted data
+    metadata: { ... },         // Metadata
+    timestamp: 1234567890      // Save timestamp
   }
 }
 ```
 
-## 用户体验
+## User experience
 
-### 首次使用
-1. 用户正常配置芯片、主题等
-2. 每次修改自动保存到本地存储
-3. 上传的文件同步保存
+### First-time use
+1. User configures the chip, theme, etc. normally
+2. Each change is automatically saved to local storage
+3. Uploaded files are saved in sync
 
-### 刷新页面后
-1. 显示"检测到已保存的配置"提示
-2. 自动恢复到上次的配置状态
-3. 恢复上传的文件和转换数据
-4. 提供"重新开始"选项
+### After a page refresh
+1. A "Saved configuration detected" notice appears
+2. The previous configuration state is restored automatically
+3. Uploaded files and converted data are restored
+4. A "Restart" option is available
 
-### 重新开始
-1. 点击"重新开始"按钮
-2. 显示详细的确认对话框
-3. 列出将要清除的数据类型
-4. 确认后完整重置到初始状态
+### Restart
+1. Click the "Restart" button
+2. A detailed confirmation dialog is shown
+3. The dialog lists the data types that will be cleared
+4. On confirmation, everything resets to the initial state
 
-## API 参考
+## API reference
 
-### ConfigStorage 主要方法
+### ConfigStorage main methods
 
 ```javascript
-// 保存配置
+// Save configuration
 await configStorage.saveConfig(config, currentStep, activeThemeTab)
 
-// 加载配置
+// Load configuration
 const data = await configStorage.loadConfig()
 
-// 保存文件
+// Save a file
 await configStorage.saveFile(id, file, type, metadata)
 
-// 加载文件
+// Load a file
 const file = await configStorage.loadFile(id)
 
-// 清空所有数据
+// Clear all data
 await configStorage.clearAll()
 ```
 
-### StorageHelper 便捷方法
+### StorageHelper convenience methods
 
 ```javascript
-// 保存字体文件
+// Save font file
 await StorageHelper.saveFontFile(file, config)
 
-// 保存表情文件
+// Save emoji file
 await StorageHelper.saveEmojiFile(emojiName, file, config)
 
-// 保存背景文件
+// Save background file
 await StorageHelper.saveBackgroundFile(mode, file, config)
 
-// 删除文件
+// Delete files
 await StorageHelper.deleteFontFile()
 await StorageHelper.deleteEmojiFile(emojiName)
 await StorageHelper.deleteBackgroundFile(mode)
 ```
 
-## 注意事项
+## Caveats
 
-### 浏览器兼容性
-- 需要支持 IndexedDB 的现代浏览器
-- 建议使用 Chrome 58+, Firefox 55+, Safari 10.1+
+### Browser compatibility
+- Requires a modern browser that supports IndexedDB
+- Recommended: Chrome 58+, Firefox 55+, Safari 10.1+
 
-### 存储限制
-- IndexedDB 存储空间受浏览器限制
-- 大文件可能影响存储性能
-- 建议定期清理不需要的数据
+### Storage limits
+- IndexedDB storage is subject to browser-imposed limits
+- Large files may impact storage performance
+- Regularly clean up data you no longer need
 
-### 隐私考虑
-- 数据仅存储在用户本地浏览器
-- 不会上传到服务器
-- 清除浏览器数据会丢失存储的配置
+### Privacy considerations
+- Data is only stored in the user's local browser
+- Nothing is uploaded to the server
+- Clearing browser data erases the stored configuration
 
-## 故障排除
+## Troubleshooting
 
-### 存储失败
-- 检查浏览器是否支持 IndexedDB
-- 确认浏览器存储空间充足
-- 检查是否启用了私密浏览模式
+### Storage failures
+- Verify that the browser supports IndexedDB
+- Ensure there is enough browser storage space
+- Check whether private browsing mode is enabled
 
-### 配置丢失
-- 清除浏览器数据会导致配置丢失
-- 浏览器升级可能影响存储兼容性
-- 建议重要配置手动备份
+### Lost configuration
+- Clearing browser data will remove saved configuration
+- Browser upgrades may affect storage compatibility
+- Back up important configurations manually
 
-### 性能问题
-- 大量文件存储可能影响性能
-- 定期使用"重新开始"功能清理数据
-- 避免频繁的大文件上传操作
+### Performance issues
+- Storing many files may degrade performance
+- Use the "Restart" feature periodically to clean up data
+- Avoid frequent uploads of very large files

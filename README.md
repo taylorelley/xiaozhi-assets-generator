@@ -1,83 +1,86 @@
-# 小智 AI 自定义 Assets 单页应用
+# LittleWise AI Custom Assets — Single-Page App
 
-## 应用目的
+([English](README.md) | [中文](README_zh.md))
 
-小智AI语音对话盒子的自定义主题（包括唤醒词模型、表情包、文本字体、聊天背景），在线生成和导出 assets.bin 文件。
+## Purpose
 
-## 功能设计
+A browser-based tool that lets owners of LittleWise (XiaoZhi-compatible) AI voice-chat devices build a custom theme — wake-word model, emoji pack, text font, and chat background — and export it as a single `assets.bin` file that can be flashed onto the device.
 
-用户要自定义一个 assets.bin 文件，分为 3 个步骤。
-- Step 1：选择芯片型号，屏幕类型与分辨率
-- Step 2：主题设计（使用多个tab来分别完成不同项目的配置）
-- Step 3：待打包生成的内容清单以及生成按钮
+## Feature Overview
 
-## 详细页面功能
+Building an `assets.bin` is a 3-step wizard:
 
-### 选择芯片型号，屏幕类型与分辨率
+- **Step 1**: Choose chip model, display type, and resolution.
+- **Step 2**: Theme design (a tabbed interface for configuring each category).
+- **Step 3**: Review the asset manifest and click Generate.
 
-给出一些常见的板子的快捷选择配置项，例如
+## Page-by-Page Functionality
 
-- 立创·实战派 ESP32-S3，配置为 esp32s3，LCD 320x240，RGB565
-- ESP-BOX-3，配置为 esp32s3，LCD 320x240，RGB565
-- 无名科技·星智 1.54 TFT，配置为 esp32s3，LCD 240x240，RGB565
-- Surfer C3 1.14 TFT，配置为 esp32c3，LCD 240x135，RGB565
+### Choose chip model, display type, and resolution
 
-也可以自定义芯片（可以选择 esp32s3,esp32c3,esp32p4,esp32c6），自定义分辨率大小，颜色目前只支持 16位的RGB565
+The app provides quick presets for common boards, for example:
 
-### 主题设计
+- LCSC·Real-World ESP32-S3 → `esp32s3`, LCD 320×240, RGB565
+- ESP-BOX-3 → `esp32s3`, LCD 320×240, RGB565
+- Unnamed Tech·XingZhi 1.54 TFT → `esp32s3`, LCD 240×240, RGB565
+- Surfer C3 1.14 TFT → `esp32c3`, LCD 240×135, RGB565
 
-#### Tab 1: 唤醒词配置
+You can also define a custom chip (choose between `esp32s3`, `esp32c3`, `esp32p4`, `esp32c6`) with a custom resolution. Colour depth is currently limited to 16-bit RGB565.
 
-目前支持两种唤醒词配置方式：**预设唤醒词**和**自定义唤醒词**。
+### Theme Design
 
-##### 1. 预设唤醒词 (WakeNet)
+#### Tab 1: Wake-word configuration
 
-对于 C3/C6 芯片，只支持 WakeNet9s 的唤醒词模型。对于 S3/P4 芯片，只支持 WakeNet9 的唤醒词模型。
+Two wake-word modes are supported: **Preset wake words** and **Custom wake words**.
 
-常用预设列表如下：
+##### 1. Preset wake words (WakeNet)
 
-| 唤醒词           | WakeNet9s (C3/C6)      | WakeNet9 (S3/P4)          |
-| :--------------- | :--------------------: | :-----------------------: |
-| Hi,乐鑫          | wn9s_hilexin           | wn9_hilexin               |
-| Hi,ESP           | wn9s_hiesp             | wn9_hiesp                 |
-| 你好小智         | wn9s_nihaoxiaozhi      | wn9_nihaoxiaozhi_tts      |
-| Hi,Jason         | wn9s_hijason_tts2      | wn9_hijason_tts2          |
-| 小爱同学         | -                      | wn9_xiaoaitongxue         |
-| 嗨小欧           | -                      | wn9_hai1xiao3ou1_tts3     |
-| 你好小瑞         | -                      | wn9_ni3hao3xiao3rui4_tts3 |
+C3/C6 chips only support WakeNet9s models; S3/P4 chips only support WakeNet9 models.
 
-唤醒词参考 `spiffs_assets/pack_model.py` 把 `share/wakenet_model` 下对应的模型目录打包成 srmodels.bin。
+Common presets:
 
-##### 2. 自定义唤醒词 (MultiNet)
+| Wake word         | WakeNet9s (C3/C6)      | WakeNet9 (S3/P4)          |
+| :---------------- | :--------------------: | :-----------------------: |
+| Hi, Espressif     | wn9s_hilexin           | wn9_hilexin               |
+| Hi, ESP           | wn9s_hiesp             | wn9_hiesp                 |
+| Hello LittleWise  | wn9s_nihaoxiaozhi      | wn9_nihaoxiaozhi_tts      |
+| Hi, Jason         | wn9s_hijason_tts2      | wn9_hijason_tts2          |
+| Xiaoai Classmate  | -                      | wn9_xiaoaitongxue         |
+| Hey Xiao-Ou       | -                      | wn9_hai1xiao3ou1_tts3     |
+| Hello Xiaorui     | -                      | wn9_ni3hao3xiao3rui4_tts3 |
 
-目前仅 **ESP32-S3** 芯片支持自定义唤醒词。用户可以输入自定义的中文或英文命令词：
+The wake-word flow mirrors `spiffs_assets/pack_model.py`: it packs the matching model directory under `share/wakenet_model` into an `srmodels.bin`.
 
-- **中文支持**：使用 `mn6_cn` 或 `mn7_cn` 模型，支持拼音输入（如：`ni hao xiao zhi`）。
-- **英文支持**：使用 `mn6_en` 或 `mn7_en` 模型，支持纯英文单词。
-- **配置参数**：可自定义阈值（Threshold，0-100）和超时时间（Duration）。
+##### 2. Custom wake words (MultiNet)
 
-自定义唤醒词功能会根据用户定义的命令词生成 MultiNet 配置，并包含在 assets.bin 中。
+Only **ESP32-S3** currently supports custom wake words. Users can enter a custom command phrase in Chinese or English:
 
+- **Chinese**: uses `mn6_cn` or `mn7_cn`, supports pinyin input (e.g. `ni hao xiao zhi`).
+- **English**: uses `mn6_en` or `mn7_en`, supports plain English phrases.
+- **Parameters**: adjustable threshold (0–100) and duration (timeout, in ms).
 
-#### Tab 2：字体配置
+The app generates the MultiNet configuration from the user's phrase and includes it in `assets.bin`.
 
-用户可以选择预设字体（位于 `share/fonts` 目录），无需字体制作过程，常用字体有：
-- font_puhui_14_1：阿里巴巴普惠体，涵盖常用字7000个，字号14px，bpp1
-- font_puhui_16_4：阿里巴巴普惠体，涵盖常用字7000个，字号16px，bpp4
-- font_puhui_20_4：阿里巴巴普惠体，涵盖常用字7000个，字号20px，bpp4
-- font_puhui_30_4：阿里巴巴普惠体，涵盖常用字7000个，字号30px，bpp4
+#### Tab 2: Font configuration
 
-用户也可以上传自定义字体：
-- 需要选择本地字体文件，目前支持TTF与WOFF格式。
-- 选择字号（范围限制在8-80之间，常用为14,16,20和30），选择bpp（范围为1，2，4）
-- 选择字符集（GB2312 7445个字符、DeepSeek R1 7405个字符），默认选择 DeepSeek R1
+Users can pick a preset font (shipped under `share/fonts`) and skip the font-build step entirely. Common presets:
 
-自定义字体参考 `lv_font_conv/lib/convert.js` 转换成 cbin 格式，转换后的文件命名为 font_[字体名]_[字号]_[BPP].bin
+- `font_puhui_14_1` — Alibaba Puhui, 7000 common glyphs, size 14 px, bpp 1
+- `font_puhui_16_4` — Alibaba Puhui, 7000 common glyphs, size 16 px, bpp 4
+- `font_puhui_20_4` — Alibaba Puhui, 7000 common glyphs, size 20 px, bpp 4
+- `font_puhui_30_4` — Alibaba Puhui, 7000 common glyphs, size 30 px, bpp 4
 
-### Tab 3：表情集合
+Users can also upload custom fonts:
 
-一个常见的表情集合一共包含 21 张图片，其中一张为 neutral 默认表情，其余为表达不同情绪的表情。
-不同表情对应的 Emoji 如下：
+- Select a local font file; TTF and WOFF are supported.
+- Choose size (8–80, commonly 14, 16, 20, or 30) and bpp (1, 2, or 4).
+- Choose charset (GB2312 with 7445 glyphs, or DeepSeek R1 with 7405 glyphs). Default: DeepSeek R1.
+
+Custom fonts are converted to `cbin` via `lv_font_conv/lib/convert.js`; the output is named `font_[name]_[size]_[bpp].bin`.
+
+### Tab 3: Emoji collection
+
+A full emoji pack contains 21 images: one `neutral` default plus 20 expressions. Emoji-to-slot mapping:
 
 | 😶 | neutral      |
 | 🙂 | happy        |
@@ -101,59 +104,59 @@
 | 😜 | silly        |
 | 🙄 | confused     |
 
-用户可以选择预设表情包，预设表情有：
-- Twemoji 32x32 PNG (位于 `share/twemoji32`)
-- Twemoji 64x64 PNG (位于 `share/twemoji64`)
+Built-in preset emoji packs:
 
-用户也可以自定义表情包：
-- 需要设置一个统一的图片大小 width x height，不能大于屏幕分辨率。
-- 选择动态图片（GIF）或静态透明背景图片（PNG）格式
-- 必须要提供一张默认图片作为 neutral 表情（大小会自动适配为 widght x height）
-- 其他表情为可选，如果用户不修改其他表情图片，则默认使用 neutral 表情来显示。
+- Twemoji 32×32 PNG (`share/twemoji32`)
+- Twemoji 64×64 PNG (`share/twemoji64`)
 
-### Tab 4：聊天背景
+Users can also upload a custom pack:
 
-背景分为浅色模式和深色模式两种配置，默认为颜色配置
-- 默认浅色模式为 #ffffff，深色模式为 #121212
+- Pick a single `width × height` for all images; must not exceed the screen resolution.
+- Choose animated (GIF) or static transparent (PNG) format.
+- A `neutral` default image is required (it is auto-scaled to `width × height`).
+- All other emotions are optional — any emotion without a custom image falls back to `neutral`.
 
-用户可以修改默认颜色，也可以加入静态图片作为背景。
-静态图片可以为两张不一样的图片，也可以配置为一张图。
-背景图片会自动适配屏幕分辨率的大小，格式通常为RGB565的位图，带64字节的header，内容为lv_image_dsc_t。
+### Tab 4: Chat background
 
-### 生成 assets.bin
+The background has two variants — light mode and dark mode — with colour as the default:
 
-用户在主题设计的过程中，可以随时点击右上角的生成按钮，通过弹窗的方式，显示要打包的资源清单。
-用户点击“确定”后，开始等待生成，如果用户自定义了字体文件，则制作字体需要的时间会比较长，制作结果可以缓存起来，重新生成的时候速度更快。
+- Default light: `#ffffff`; default dark: `#121212`.
 
-现在已经实现了浏览器端本地生成 assets.bin 的功能，无需后端 API。
+Users can change the colours or upload a static image as the background. The two modes can have different images or share the same one. Background images are auto-scaled to the device's resolution; the packed format is usually an RGB565 bitmap with a 64-byte `lv_image_dsc_t` header.
 
-## 技术实现
+### Generate `assets.bin`
 
-### 浏览器端生成 assets.bin
+At any point during theme design, users can click the Generate button in the top-right to open a modal that lists every asset about to be packed. After confirming, generation starts. Custom font conversion is the slowest step; results are cached so re-generating with the same font is fast.
 
-项目现在使用完全基于浏览器的本地生成方案：
+Everything runs in the browser — no backend API is required.
 
-1. **WakenetModelPacker.js** - 模仿 `pack_model.py` 的功能，在浏览器端打包唤醒词模型为 srmodels.bin
-2. **SpiffsGenerator.js** - 模仿 `spiffs_assets_gen.py` 的功能，生成最终的 assets.bin 文件
-3. **AssetsBuilder.js** - 协调各个模块，模仿 `build.py` 的资源处理流程
+## Implementation Notes
 
-### 生成流程
+### Browser-side generation of `assets.bin`
 
-1. 加载用户配置
-2. 处理字体文件（预设字体或自定义字体转换）
-3. 处理唤醒词模型：
-   - **预设模式**：从 `public/static/wakenet_model/` 加载对应模型并打包。
-   - **自定义模式**：从 `public/static/multinet_model/` 加载 MultiNet 模型，并根据用户定义的命令词生成配置。
-4. 处理表情图片（预设或自定义）
-5. 处理背景图片并转换为RGB565格式
-6. 生成 index.json 索引文件
-7. 使用 SPIFFS 格式打包所有文件为 assets.bin
+The project uses a fully in-browser generation pipeline:
 
-### 资源文件结构
+1. **`WakenetModelPacker.js`** — replicates `pack_model.py`, packing wake-word models into `srmodels.bin`.
+2. **`SpiffsGenerator.js`** — replicates `spiffs_assets_gen.py`, producing the final `assets.bin`.
+3. **`AssetsBuilder.js`** — orchestrates the other modules; mirrors the flow of `build.py`.
 
-生成的 assets.bin 包含索引文件 index.json，内容大概如下：
+### Generation pipeline
 
-例子1：
+1. Load the user's configuration.
+2. Process the font file (preset, or convert a custom font).
+3. Process the wake-word model:
+   - **Preset mode**: load the matching model from `public/static/wakenet_model/` and pack it.
+   - **Custom mode**: load a MultiNet model from `public/static/multinet_model/` and build a config from the user's phrase.
+4. Process emoji images (preset or custom).
+5. Process background images and convert to RGB565.
+6. Generate the `index.json` manifest.
+7. Pack everything into `assets.bin` using the SPIFFS format.
+
+### Asset layout
+
+The generated `assets.bin` includes an `index.json` that looks roughly like this:
+
+Example 1:
 ```json
 {
     "version": 1,
@@ -186,15 +189,15 @@
         ...
     ],
     "multinet": {
-        "model": "mn6_cn",
-        "command": "ni hao xiao zhi",
+        "model": "mn6_en",
+        "command": "hi little wise",
         "threshold": 20,
         "duration": 3000
     }
 }
 ```
 
-例子2：
+Example 2:
 ```json
 {
     "version": 1,
@@ -210,7 +213,7 @@
     "skin": {
         "light": {
             "text_color": "#000000",
-            "background_color": "#FFFFFF",
+            "background_color": "#FFFFFF"
         },
         "dark": {
             "text_color": "#FFFFFF",
@@ -226,4 +229,3 @@
     ]
 }
 ```
-

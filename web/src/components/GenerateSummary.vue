@@ -5,30 +5,30 @@
       <p class="text-gray-600 mb-6">{{ $t('generateSummary.description') }}</p>
     </div>
 
-    <!-- 设备预览区域 -->
+    <!-- Device preview area -->
     <div class="flex flex-col lg:flex-row gap-8">
-      <!-- 设备模拟器 -->
+      <!-- Device simulator -->
       <div class="flex-1">
         <h3 class="text-lg font-medium text-gray-900 mb-4">{{ $t('generateSummary.devicePreview') }}</h3>
         <div class="bg-gray-100 p-4 rounded-lg">
           <div class="max-w-full overflow-auto flex justify-center">
-            <!-- 设备外框 -->
+            <!-- Device bezel -->
             <div class="bg-gray-800 p-6 rounded-2xl shadow-2xl inline-block">
               <div class="bg-gray-900 p-2 rounded-xl">
-                <!-- 屏幕区域 -->
+                <!-- Screen area -->
                 <div 
                   :style="getScreenStyle()"
                   class="relative rounded-lg overflow-hidden border-2 border-gray-700 flex flex-col items-center justify-center"
                 >
-                <!-- 背景层 -->
-                <div 
+                <!-- Background layer -->
+                <div
                   :style="getBackgroundStyle()"
                   class="absolute inset-0"
                 ></div>
-                
-                <!-- 内容层 -->
+
+                <!-- Content layer -->
                 <div class="relative z-10 flex flex-col items-center justify-center p-4 text-center">
-                  <!-- 表情显示 -->
+                  <!-- Emoji display -->
                   <div class="mb-4">
                     <div v-if="currentEmoji && availableEmotions.length > 0" class="emoji-container">
                       <img 
@@ -59,7 +59,7 @@
                     </div>
                   </div>
                   
-                  <!-- 文字显示 -->
+                  <!-- Text display -->
                   <div 
                     v-if="!config.theme.font.hide_subtitle"
                     :style="getTextStyle()"
@@ -76,7 +76,7 @@
               </div>
             </div>
             
-            <!-- 设备信息 -->
+            <!-- Device info -->
             <div class="mt-3 text-center text-xs text-gray-400">
               {{ config.chip.display.width }} × {{ config.chip.display.height }}
               {{ config.chip.model.toUpperCase() }}
@@ -86,23 +86,23 @@
         </div>
       </div>
 
-      <!-- 控制面板 -->
+      <!-- Control panel -->
       <div class="w-full lg:w-80">
         <h3 class="text-lg font-medium text-gray-900 mb-4">{{ $t('generateSummary.previewSettings') }}</h3>
         <div class="space-y-6 bg-white border border-gray-200 rounded-lg p-4">
           
-          <!-- 文字内容编辑 -->
+          <!-- Preview text editor -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('generateSummary.previewText') }}</label>
             <textarea
               v-model="previewText"
               class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               rows="3"
-              placeholder="Hi, I'm your friend Xiaozhi!"
+              placeholder="Hi, I'm your friend LittleWise!"
             ></textarea>
           </div>
 
-          <!-- 表情切换 -->
+          <!-- Emotion switcher -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('generateSummary.currentEmotion') }}</label>
             <div v-if="availableEmotions.length > 0" class="flex flex-wrap gap-2 max-h-32 overflow-y-auto justify-center">
@@ -136,7 +136,7 @@
             </div>
           </div>
 
-          <!-- 主题模式切换 -->
+          <!-- Theme mode switcher -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('generateSummary.themeMode') }}</label>
             <div class="flex space-x-2">
@@ -166,7 +166,7 @@
           </div>
 
 
-          <!-- 配置摘要 -->
+          <!-- Configuration summary -->
           <div class="border-t pt-4">
             <h4 class="font-medium text-gray-900 mb-2">{{ $t('generateSummary.configSummary') }}</h4>
             <div class="text-xs text-gray-600 space-y-1">
@@ -184,7 +184,7 @@
       </div>
     </div>
 
-    <!-- 操作按钮 -->
+    <!-- Action buttons -->
     <div class="flex justify-between">
       <button 
         @click="$emit('prev')"
@@ -220,14 +220,14 @@ const props = defineProps({
 
 defineEmits(['prev', 'generate'])
 
-// 预览状态
+// Preview state
 const previewText = ref(t('generateSummary.defaultPreviewText'))
 const currentEmoji = ref('happy')
 const themeMode = ref('light')
 const fontLoaded = ref(false)
 const loadedFontFamily = ref('')
 
-// 表情数据
+// Emotion data
 const emotionList = computed(() => [
   { key: 'neutral', name: t('generateSummary.emotions.neutral'), emoji: '😶' },
   { key: 'happy', name: t('generateSummary.emotions.happy'), emoji: '🙂' },
@@ -243,43 +243,43 @@ const emotionList = computed(() => [
   { key: 'sleepy', name: t('generateSummary.emotions.sleepy'), emoji: '😴' }
 ])
 
-// 可用的表情列表
+// Available emotion list
 const availableEmotions = computed(() => {
   if (props.config.theme.emoji.type === 'preset' && props.config.theme.emoji.preset) {
     return emotionList.value
   } else if (props.config.theme.emoji.type === 'custom') {
-    // 只显示用户上传的表情
+    // Show only emotions the user has uploaded
     const customImages = props.config.theme.emoji.custom.images
     return emotionList.value.filter(emotion => customImages[emotion.key])
   } else {
-    // 未配置表情时返回空数组
+    // Return an empty array when no emojis are configured
     return []
   }
 })
 
-// 当前表情图片
+// Current emoji image
 const currentEmojiImage = computed(() => {
   return getEmotionImage(currentEmoji.value)
 })
 
-// 获取屏幕样式
+// Get the screen style
 const getScreenStyle = () => {
   const { width, height } = props.config.chip.display
-  
-  // 使用1:1像素比例，直接使用配置中的尺寸
+
+  // Use a 1:1 pixel ratio and apply the configured dimensions directly
   return {
     width: `${width}px`,
     height: `${height}px`
   }
 }
 
-// 获取背景样式
+// Get the background style
 const getBackgroundStyle = () => {
   const bg = props.config.theme.skin[themeMode.value]
-  
+
   if (bg.backgroundType === 'image' && bg.backgroundImage) {
     try {
-      // 验证背景图片文件是否有效
+      // Verify that the background image is a valid file
       if (bg.backgroundImage && typeof bg.backgroundImage === 'object' && bg.backgroundImage.size) {
         return {
           backgroundImage: `url(${URL.createObjectURL(bg.backgroundImage)})`,
@@ -288,16 +288,16 @@ const getBackgroundStyle = () => {
         }
       }
     } catch (error) {
-      console.warn('背景图片预览加载失败:', error)
+      console.warn('Failed to load background image preview:', error)
     }
   }
-  
+
   return {
     backgroundColor: bg.backgroundColor || '#ffffff'
   }
 }
 
-// 预设表情包尺寸配置
+// Preset emoji-pack size configuration
 const presetEmojiSizes = {
   'twemoji32': 32,
   'twemoji64': 64,
@@ -305,28 +305,28 @@ const presetEmojiSizes = {
   'noto-emoji_128': 128
 }
 
-// 获取表情样式
+// Get the emoji style
 const getEmojiStyle = () => {
-  let size = 48 // 默认大小
-  
+  let size = 48 // Default size
+
   if (props.config.theme.emoji.type === 'preset') {
     size = presetEmojiSizes[props.config.theme.emoji.preset] || 32
   } else if (props.config.theme.emoji.custom.size) {
     size = Math.min(props.config.theme.emoji.custom.size.width, props.config.theme.emoji.custom.size.height)
   }
-  
-  // 使用1:1像素比例，直接使用配置中的表情尺寸
+
+  // Use a 1:1 pixel ratio and apply the configured emoji size directly
   return {
     width: `${size}px`,
     height: `${size}px`
   }
 }
 
-// 获取文字样式
+// Get the text style
 const getTextStyle = () => {
   let fontSize = 14
-  
-  // 根据字体配置调整字号
+
+  // Adjust font size based on the font configuration
   if (props.config.theme.font.type === 'preset') {
     const fontConfig = props.config.theme.font.preset
     if (fontConfig.includes('_14_')) fontSize = 14
@@ -336,9 +336,9 @@ const getTextStyle = () => {
   } else if (props.config.theme.font.custom.size) {
     fontSize = props.config.theme.font.custom.size
   }
-  
-  // 使用1:1像素比例，直接使用配置中的字体大小
-  const textColor = themeMode.value === 'dark' 
+
+  // Use a 1:1 pixel ratio and apply the configured font size directly
+  const textColor = themeMode.value === 'dark'
     ? props.config.theme.skin.dark.textColor 
     : props.config.theme.skin.light.textColor
   
@@ -350,27 +350,27 @@ const getTextStyle = () => {
   }
 }
 
-// 动态加载字体
+// Dynamically load the font
 const loadFont = async () => {
-  // 清理之前的字体
+  // Clean up previously loaded fonts
   const existingStyles = document.querySelectorAll('style[data-font-preview]')
   existingStyles.forEach(style => style.remove())
-  
+
   fontLoaded.value = false
   loadedFontFamily.value = ''
 
   try {
     if (props.config.theme.font.type === 'preset') {
-      // 加载预设字体
+      // Load the preset font
       const presetId = props.config.theme.font.preset
       let fontFamily, fontUrl
-      
-      // 根据预设字体 ID 判断是 puhui 还是 noto
+
+      // Pick puhui or noto based on the preset font ID
       if (presetId && presetId.startsWith('font_noto_qwen_')) {
         fontFamily = 'NotoPreview'
         fontUrl = './static/fonts/noto_qwen.ttf'
       } else {
-        // 默认为 puhui
+        // Default to puhui
         fontFamily = 'PuHuiPreview'
         fontUrl = './static/fonts/puhui_deepseek.ttf'
       }
@@ -386,21 +386,21 @@ const loadFont = async () => {
       `
       document.head.appendChild(style)
       
-      // 等待字体加载完成
+      // Wait for the font to load
       await document.fonts.load(`16px "${fontFamily}"`)
       loadedFontFamily.value = fontFamily
       fontLoaded.value = true
-      
+
     } else if (props.config.theme.font.custom.file) {
-      // 加载自定义字体
+      // Load the custom font
       try {
         const fontFile = props.config.theme.font.custom.file
-        
-        // 验证文件对象是否有效
+
+        // Verify that the file object is valid
         if (!fontFile || typeof fontFile !== 'object' || !fontFile.size) {
-          throw new Error('字体文件对象无效')
+          throw new Error('Invalid font file object')
         }
-        
+
         const fontFamily = 'CustomFontPreview'
         const fontUrl = URL.createObjectURL(fontFile)
         
@@ -415,18 +415,18 @@ const loadFont = async () => {
         `
         document.head.appendChild(style)
         
-        // 等待字体加载完成
+        // Wait for the font to load
         await document.fonts.load(`16px "${fontFamily}"`)
         loadedFontFamily.value = fontFamily
         fontLoaded.value = true
       } catch (error) {
-        console.warn('自定义字体预览加载失败:', error)
-        // 使用系统默认字体作为fallback
+        console.warn('Failed to load custom font preview:', error)
+        // Fall back to the system default font
         loadedFontFamily.value = 'Arial, sans-serif'
         fontLoaded.value = true
       }
     } else {
-      // 使用系统字体
+      // Use the system font
       loadedFontFamily.value = 'system-ui'
       fontLoaded.value = true
     }
@@ -437,7 +437,7 @@ const loadFont = async () => {
   }
 }
 
-// 获取字体族
+// Get the font family
 const getFontFamily = () => {
   if (fontLoaded.value && loadedFontFamily.value) {
     return `"${loadedFontFamily.value}", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif`
@@ -445,7 +445,7 @@ const getFontFamily = () => {
   return '"PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif'
 }
 
-// 预设表情包配置
+// Preset emoji-pack configuration
 const presetEmojiFormats = {
   'twemoji32': 'png',
   'twemoji64': 'png',
@@ -453,7 +453,7 @@ const presetEmojiFormats = {
   'noto-emoji_128': 'gif'
 }
 
-// 获取表情图片
+// Get the image for an emotion
 const getEmotionImage = (emotionKey) => {
   if (props.config.theme.emoji.type === 'preset') {
     const presetId = props.config.theme.emoji.preset
@@ -462,61 +462,61 @@ const getEmotionImage = (emotionKey) => {
   } else if (props.config.theme.emoji.type === 'custom' && props.config.theme.emoji.custom.images[emotionKey]) {
     try {
       const emojiFile = props.config.theme.emoji.custom.images[emotionKey]
-      // 验证表情文件是否有效
+      // Verify that the emoji file is valid
       if (emojiFile && typeof emojiFile === 'object' && emojiFile.size) {
         return URL.createObjectURL(emojiFile)
       }
     } catch (error) {
-      console.warn(`表情图片预览加载失败 (${emotionKey}):`, error)
+      console.warn(`Failed to load emoji preview (${emotionKey}):`, error)
     }
   }
   return null
 }
 
-// 获取表情字符
+// Get the emoji character glyph
 const getEmojiCharacter = (emotionKey) => {
   const emotion = emotionList.value.find(e => e.key === emotionKey)
   return emotion ? emotion.emoji : '😶'
 }
 
-// 获取表情控制按钮尺寸
+// Get the size of the emoji control button
 const getEmojiControlSize = () => {
   if (props.config.theme.emoji.type === 'preset') {
     const baseSize = presetEmojiSizes[props.config.theme.emoji.preset] || 32
-    return Math.min(baseSize + 16, 80) // 加上padding，限制最大尺寸
+    return Math.min(baseSize + 16, 80) // Add padding and clamp the max size
   } else if (props.config.theme.emoji.custom.size) {
     const baseSize = Math.min(props.config.theme.emoji.custom.size.width, props.config.theme.emoji.custom.size.height)
-    return Math.min(baseSize + 16, 80) // 限制最大尺寸
+    return Math.min(baseSize + 16, 80) // Clamp the max size
   }
-  return 48 // 默认尺寸
+  return 48 // Default size
 }
 
-// 获取表情图片显示尺寸
+// Get the display size of the emoji image
 const getEmojiDisplaySize = () => {
   if (props.config.theme.emoji.type === 'preset') {
     const size = presetEmojiSizes[props.config.theme.emoji.preset] || 32
-    return Math.min(size, 64) // 限制控制面板中的显示尺寸
+    return Math.min(size, 64) // Clamp the display size in the control panel
   } else if (props.config.theme.emoji.custom.size) {
     return Math.min(props.config.theme.emoji.custom.size.width, props.config.theme.emoji.custom.size.height, 64)
   }
-  return 32 // 默认尺寸
+  return 32 // Default size
 }
 
-// 切换表情
+// Switch to a different emotion
 const changeEmotion = (emotionKey) => {
   currentEmoji.value = emotionKey
 }
 
 
-// 配置摘要方法
+// Build the configuration summary displayed in step 3.
 const getWakewordName = () => {
   const wakeword = props.config.theme.wakeword
   if (!wakeword || wakeword.type === 'none') return t('wakewordConfig.noWakeword')
-  
+
   if (wakeword.type === 'preset') {
     const names = {
-      'wn9s_hilexin': 'Hi,乐鑫', 'wn9s_hiesp': 'Hi,ESP', 'wn9s_nihaoxiaozhi': '你好小智',
-      'wn9_nihaoxiaozhi_tts': '你好小智', 'wn9_alexa': 'Alexa', 'wn9_jarvis_tts': 'Jarvis'
+      'wn9s_hilexin': 'Hi, Espressif', 'wn9s_hiesp': 'Hi, ESP', 'wn9s_nihaoxiaozhi': 'Hello LittleWise',
+      'wn9_nihaoxiaozhi_tts': 'Hello LittleWise', 'wn9_alexa': 'Alexa', 'wn9_jarvis_tts': 'Jarvis'
     }
     return names[wakeword.preset] || wakeword.preset
   }
@@ -530,7 +530,7 @@ const getWakewordName = () => {
 
 const getFontName = () => {
   if (props.config.theme.font.type === 'preset') {
-    // 使用国际化翻译获取预设字体名称
+    // Resolve the preset font's display name via the i18n catalog.
     return t('fontConfig.presetFontNames.' + props.config.theme.font.preset) || props.config.theme.font.preset
   } else {
     const custom = props.config.theme.font.custom
@@ -563,25 +563,25 @@ const getSkinName = () => {
   return t('generateSummary.skinLight', { type: lightType }) + '/' + t('generateSummary.skinDark', { type: darkType })
 }
 
-// 监听字体配置变化
+// Watch for font-config changes
 watch(() => props.config.theme.font, () => {
   loadFont()
 }, { deep: true })
 
-// 组件挂载
+// Component mount
 onMounted(async () => {
-  // 确保有可用的表情
+  // Ensure an available emotion is selected
   if (availableEmotions.value.length > 0) {
     currentEmoji.value = availableEmotions.value[0].key
   } else {
     currentEmoji.value = ''
   }
-  
-  // 加载字体
+
+  // Load the font
   await loadFont()
 })
 
-// 组件卸载时清理字体
+// Clean up fonts when the component unmounts
 onUnmounted(() => {
   const existingStyles = document.querySelectorAll('style[data-font-preview]')
   existingStyles.forEach(style => style.remove())

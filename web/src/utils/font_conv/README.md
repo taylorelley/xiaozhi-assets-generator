@@ -1,37 +1,37 @@
-# Font Converter - 浏览器端字体转换器
+# Font Converter - Browser-side Font Converter
 
-这是基于 lv_font_conv 核心逻辑的浏览器端字体转换器，支持将 TTF/WOFF 字体文件转换为 LVGL 兼容的 CBIN 格式。
+This is a browser-side font converter based on the core logic of `lv_font_conv`. It converts TTF/WOFF font files into the LVGL-compatible CBIN format.
 
-## 📁 模块结构
+## Module structure
 
 ```
 font_conv/
-├── AppError.js              # 错误处理类
-├── Ranger.js                # 字符范围管理器
-├── Utils.js                 # 工具函数集合
-├── FreeType.js              # FreeType 接口（ES6版本）
-├── CollectFontData.js       # 字体数据收集核心模块
-├── BrowserFontConverter.js  # 主要的转换器接口
-├── TestConverter.js         # 测试模块
-├── freetype_build/          # WebAssembly FreeType 模块
+├── AppError.js              # Error handling class
+├── Ranger.js                # Character-range manager
+├── Utils.js                 # Utility functions
+├── FreeType.js              # FreeType interface (ES6 version)
+├── CollectFontData.js       # Core module for collecting font data
+├── BrowserFontConverter.js  # Main converter interface
+├── TestConverter.js         # Test module
+├── freetype_build/          # WebAssembly FreeType module
 └── writers/
-    ├── CBinWriter.js        # CBIN 格式写入器
-    └── CBinFont.js          # CBIN 字体类
+    ├── CBinWriter.js        # CBIN format writer
+    └── CBinFont.js          # CBIN font class
 ```
 
-## 🚀 使用方法
+## Usage
 
-### 基本使用
+### Basic usage
 
 ```javascript
 import browserFontConverter from './font_conv/BrowserFontConverter.js'
 
-// 初始化转换器
+// Initialize the converter
 await browserFontConverter.initialize()
 
-// 转换字体
+// Convert a font
 const result = await browserFontConverter.convertToCBIN({
-  fontFile: fontFile,          // File 对象
+  fontFile: fontFile,          // File object
   fontName: 'my_font',
   fontSize: 20,
   bpp: 4,
@@ -41,18 +41,18 @@ const result = await browserFontConverter.convertToCBIN({
   }
 })
 
-// result 是 ArrayBuffer，包含 CBIN 格式的字体数据
+// result is an ArrayBuffer containing the CBIN-format font data
 ```
 
-### 获取字体信息
+### Get font information
 
 ```javascript
 const fontInfo = await browserFontConverter.getFontInfo(fontFile)
-console.log('字体信息:', fontInfo)
+console.log('Font info:', fontInfo)
 /*
 {
   familyName: "Arial",
-  fullName: "Arial Regular", 
+  fullName: "Arial Regular",
   postScriptName: "ArialMT",
   version: "1.0",
   unitsPerEm: 2048,
@@ -64,7 +64,7 @@ console.log('字体信息:', fontInfo)
 */
 ```
 
-### 大小估算
+### Size estimation
 
 ```javascript
 const estimate = browserFontConverter.estimateSize({
@@ -73,7 +73,7 @@ const estimate = browserFontConverter.estimateSize({
   charset: 'deepseek'
 })
 
-console.log('估算结果:', estimate)
+console.log('Estimate:', estimate)
 /*
 {
   characterCount: 7405,
@@ -84,107 +84,107 @@ console.log('估算结果:', estimate)
 */
 ```
 
-## ⚙️ 配置选项
+## Configuration options
 
-### 转换参数
+### Conversion parameters
 
-| 参数 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `fontFile` | File/ArrayBuffer | - | 字体文件 |
-| `fontName` | string | 'font' | 输出字体名称 |
-| `fontSize` | number | 20 | 字号 (8-80) |
-| `bpp` | number | 4 | 位深度 (1,2,4,8) |
-| `charset` | string | 'basic' | 预设字符集 |
-| `symbols` | string | '' | 自定义字符 |
-| `range` | string | '' | Unicode 范围 |
-| `compression` | boolean | true | 启用压缩 |
-| `lcd` | boolean | false | 水平亚像素渲染 |
-| `lcd_v` | boolean | false | 垂直亚像素渲染 |
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `fontFile` | File/ArrayBuffer | - | Font file |
+| `fontName` | string | 'font' | Output font name |
+| `fontSize` | number | 20 | Font size (8-80) |
+| `bpp` | number | 4 | Bit depth (1, 2, 4, 8) |
+| `charset` | string | 'basic' | Preset character set |
+| `symbols` | string | '' | Custom characters |
+| `range` | string | '' | Unicode range |
+| `compression` | boolean | true | Enable compression |
+| `lcd` | boolean | false | Horizontal sub-pixel rendering |
+| `lcd_v` | boolean | false | Vertical sub-pixel rendering |
 
-### 支持的字符集
+### Supported character sets
 
-- `basic`: 基础 ASCII 字符集（95个字符）
-- `deepseek`: DeepSeek R1 常用汉字（7405个字符）
-- `gb2312`: GB2312 汉字集（7445个字符）
+- `basic`: Basic ASCII character set (95 characters)
+- `deepseek`: DeepSeek R1 common Chinese characters (7405 characters)
+- `gb2312`: GB2312 Chinese character set (7445 characters)
 
-### 支持的字体格式
+### Supported font formats
 
 - TTF (TrueType Font)
 - WOFF (Web Open Font Format)
 - WOFF2 (Web Open Font Format 2.0)
 - OTF (OpenType Font)
 
-## 🔧 技术实现
+## Technical implementation
 
-### 核心依赖
+### Core dependencies
 
-1. **opentype.js**: 用于解析字体文件结构
-2. **WebAssembly FreeType**: 用于字体渲染和字形生成
-3. **自定义 CBIN 写入器**: 生成 LVGL 兼容格式
+1. **opentype.js**: Parses the font file structure
+2. **WebAssembly FreeType**: Renders glyphs and generates glyph data
+3. **Custom CBIN writer**: Generates the LVGL-compatible format
 
-### 转换流程
+### Conversion flow
 
-1. **字体解析**: 使用 opentype.js 解析字体文件
-2. **字形渲染**: 通过 FreeType WebAssembly 渲染字形
-3. **数据收集**: 收集字形数据、度量信息、字距调整
-4. **格式转换**: 将数据转换为 CBIN 格式
-5. **输出生成**: 生成最终的二进制文件
+1. **Font parsing**: Use opentype.js to parse the font file
+2. **Glyph rendering**: Render glyphs through the FreeType WebAssembly module
+3. **Data collection**: Gather glyph data, metrics, and kerning info
+4. **Format conversion**: Convert the data into the CBIN format
+5. **Output**: Emit the final binary file
 
-### 与原版的区别
+### Differences from the original
 
-| 特性 | 原版 lv_font_conv | 浏览器版本 |
-|------|-------------------|------------|
-| 运行环境 | Node.js | 浏览器 |
-| 模块系统 | CommonJS | ES6 Modules |
-| 文件系统 | fs 模块 | File API |
-| 缓冲区 | Buffer | ArrayBuffer/Uint8Array |
-| 命令行 | CLI 接口 | JavaScript API |
+| Feature | Original `lv_font_conv` | Browser version |
+|---------|-------------------------|-----------------|
+| Runtime | Node.js | Browser |
+| Module system | CommonJS | ES6 modules |
+| File system | `fs` module | File API |
+| Buffers | `Buffer` | `ArrayBuffer` / `Uint8Array` |
+| Command line | CLI | JavaScript API |
 
-## 🧪 测试
+## Tests
 
 ```javascript
 import { testFontConverter, testWithSampleFont } from './font_conv/TestConverter.js'
 
-// 基础功能测试
+// Basic feature test
 await testFontConverter()
 
-// 字体文件测试
+// Font file test
 const result = await testWithSampleFont(fontFile)
-console.log('测试结果:', result)
+console.log('Test result:', result)
 ```
 
-## ⚠️ 注意事项
+## Caveats
 
-1. **WebAssembly 支持**: 需要浏览器支持 WebAssembly
-2. **内存限制**: 大字体文件可能消耗较多内存
-3. **处理时间**: 复杂字体和大字符集转换需要较长时间
-4. **文件大小**: ft_render.wasm 文件较大 (~2MB)
-5. **兼容性**: 需要现代浏览器支持
+1. **WebAssembly support**: Browsers must support WebAssembly
+2. **Memory limits**: Large font files can consume significant memory
+3. **Processing time**: Complex fonts and large character sets take longer to convert
+4. **File size**: `ft_render.wasm` is relatively large (~2MB)
+5. **Compatibility**: Requires a modern browser
 
-## 📊 性能指标
+## Performance benchmarks
 
-| 字符集大小 | 字号 | BPP | 预计转换时间 | 输出大小 |
-|------------|------|-----|-------------|----------|
-| 100 字符 | 16px | 4 | < 1秒 | ~10KB |
-| 1000 字符 | 20px | 4 | 2-5秒 | ~100KB |
-| 7000 字符 | 20px | 4 | 10-30秒 | ~500KB |
+| Charset size | Font size | BPP | Estimated time | Output size |
+|--------------|-----------|-----|----------------|-------------|
+| 100 chars | 16px | 4 | < 1s | ~10KB |
+| 1000 chars | 20px | 4 | 2-5s | ~100KB |
+| 7000 chars | 20px | 4 | 10-30s | ~500KB |
 
-## 🐛 已知问题
+## Known issues
 
-1. **字体验证**: 部分损坏的字体文件可能导致崩溃
-2. **内存管理**: 长时间使用可能导致内存泄漏
-3. **错误处理**: WebAssembly 错误难以调试
-4. **字符集**: 某些特殊字符可能无法正确渲染
+1. **Font validation**: Some corrupted font files may cause crashes
+2. **Memory management**: Long-running use may leak memory
+3. **Error handling**: WebAssembly errors are hard to debug
+4. **Charset**: Certain special characters may not render correctly
 
-## 🔮 未来改进
+## Future improvements
 
-- [ ] 支持更多字体格式
-- [ ] 优化内存使用
-- [ ] 增加字体预览功能
-- [ ] 支持字体子集化
-- [ ] 添加更多压缩选项
-- [ ] 支持彩色字体
+- [ ] Support more font formats
+- [ ] Optimize memory usage
+- [ ] Add a font preview feature
+- [ ] Support font subsetting
+- [ ] Add more compression options
+- [ ] Support color fonts
 
 ---
 
-*基于 lv_font_conv 项目改编，适配浏览器环境*
+*Adapted from the lv_font_conv project for the browser environment*

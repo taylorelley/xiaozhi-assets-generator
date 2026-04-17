@@ -1,13 +1,13 @@
-// CBIN Font writer - 严格按照官方实现（浏览器兼容版）
-// 遵循 font_conv_lib/writers/cbin/ 的格式
+// CBIN Font writer - follows the official implementation exactly (browser-compatible version)
+// Conforms to the format used by font_conv_lib/writers/cbin/
 
 import AppError from '../AppError.js';
 import cmap_build_subtables from '../cmap_build_subtables.js';
 
-// 32位指针大小，保持与官方一致
+// 32-bit pointer size, matches the official implementation
 const ptr_size = 4;
 
-// 浏览器版本的 writeUInt64LE 实现
+// Browser-side implementation of writeUInt64LE
 const writeUInt64LE = (view, val, pos) => {
   view.setUint32(pos, val, true);
   view.setUint32(pos + 4, 0, true);
@@ -27,7 +27,7 @@ class CBinFont {
       throw new AppError('LVGL supports "--bpp 3" with compression only');
     }
 
-    // 初始化各个表格处理器
+    // Initialize the various table handlers
     this.init_tables();
   }
 
@@ -39,7 +39,7 @@ class CBinFont {
   }
 
   toCBin() {
-    // 严格按照 lv_font.js 的实现（浏览器兼容版）
+    // Follows the lv_font.js implementation exactly (browser-compatible version)
     const [bitmap_buf, glyph_dsc_buf] = this.glyf.toCBin();
     const cmaps_buf = this.cmap.toCBin(ptr_size);
     const kern_buf = this.kern.toCBin(ptr_size);
@@ -94,24 +94,24 @@ class CBinFont {
   }
 
   concatArrayBuffers(buffers) {
-    // 浏览器兼容的 ArrayBuffer 合并方法
+    // Browser-compatible ArrayBuffer concatenation helper
     const totalLength = buffers.reduce((sum, buf) => sum + buf.byteLength, 0);
     const result = new ArrayBuffer(totalLength);
     const view = new Uint8Array(result);
-    
+
     let offset = 0;
     for (const buf of buffers) {
       view.set(new Uint8Array(buf), offset);
       offset += buf.byteLength;
     }
-    
+
     return result;
   }
 }
 
-// 各个表格处理类的实现
+// Implementations of the various table handler classes
 
-// Head 表格处理器
+// Head table handler
 class HeadTable {
   constructor(font) {
     this.font = font;
@@ -119,17 +119,17 @@ class HeadTable {
 
   kern_ref() {
     const f = this.font;
-    
-    // 简化版：不支持 kerning
+
+    // Simplified version: kerning is not supported
     return {
       scale: 0,
-      dsc: 'NULL', 
+      dsc: 'NULL',
       classes: 0
     };
   }
 }
 
-// 浏览器兼容的简化 BitStream 实现
+// Simplified BitStream implementation compatible with the browser
 class SimpleBitStream {
   constructor(buffer) {
     this.buffer = new Uint8Array(buffer);
@@ -165,7 +165,7 @@ class SimpleBitStream {
   }
 }
 
-// Glyf 表格处理器 - 严格按照官方 lv_table_glyf.js 实现
+// Glyf table handler - follows the official lv_table_glyf.js implementation exactly
 class GlyfTable {
   constructor(font) {
     this.font = font;
@@ -173,13 +173,13 @@ class GlyfTable {
     this.lv_compiled = false;
   }
 
-  // 严格按照官方 table_glyf.js 的 pixelsToBpp 实现
+  // Follows the official table_glyf.js pixelsToBpp implementation exactly
   pixelsToBpp(pixels) {
     const bpp = this.font.opts.bpp;
     return pixels.map(line => line.map(p => (p >>> (8 - bpp))));
   }
 
-  // 严格按照官方的 storePixels 实现
+  // Follows the official storePixels implementation exactly
   storePixels(bitStream, pixels) {
     if (this.getCompressionCode() === 0) this.storePixelsRaw(bitStream, pixels);
     else this.storePixelsCompressed(bitStream, pixels);
@@ -197,12 +197,12 @@ class GlyfTable {
   }
 
   storePixelsCompressed(bitStream, pixels) {
-    // 简化版：暂不支持压缩，直接调用 raw 版本
+    // Simplified version: compression is not yet supported, fall back to raw
     this.storePixelsRaw(bitStream, pixels);
   }
 
   lv_bitmap(glyph) {
-    // 严格按照官方实现
+    // Follows the official implementation exactly
     const bufSize = 100 + glyph.bbox.width * glyph.bbox.height * 4;
     const buf = new ArrayBuffer(bufSize);
     const bs = new SimpleBitStream(buf);
@@ -211,7 +211,7 @@ class GlyfTable {
     const pixels = this.pixelsToBpp(glyph.pixels);
     this.storePixels(bs, pixels);
 
-    // 创建实际使用的 buffer
+    // Create the buffer actually used for output
     const glyph_bitmap = new ArrayBuffer(bs.getUsedBytes());
     const srcView = new Uint8Array(buf);
     const destView = new Uint8Array(glyph_bitmap);
@@ -229,7 +229,7 @@ class GlyfTable {
     this.lv_data = [];
     let offset = 0;
 
-    // 严格按照官方逻辑：使用 f.glyph_id[g.code] 作为索引
+    // Follows the official logic: use f.glyph_id[g.code] as the index
     f.src.glyphs.forEach(g => {
       const id = f.glyph_id[g.code];
       const bin = this.lv_bitmap(g);
@@ -245,8 +245,8 @@ class GlyfTable {
   toCBin() {
     // LV_FONT_FMT_TXT_LARGE == 1
     this.lv_compile();
-    
-    // 严格按照官方实现：slice(1) 跳过索引0，然后过滤有效数据
+
+    // Follows the official implementation: slice(1) to skip index 0, then filter valid data
     const validBins = this.lv_data.slice(1).filter(d => d).map(d => d.bin);
     const bitmap_buf = this.balign4(this.concatArrayBuffers(validBins));
     const glyph_dsc_buf = new ArrayBuffer(this.lv_data.length * 16 + 16);
@@ -300,15 +300,15 @@ class GlyfTable {
   }
 }
 
-// Cmap 表格处理器 - 严格按照官方 lv_table_cmap.js 实现
+// Cmap table handler - follows the official lv_table_cmap.js implementation exactly
 class CmapTable {
   constructor(font) {
     this.font = font;
     this.lv_compiled = false;
     this.lv_subtables = [];
     this.subtables_plan = null;
-    
-    // 建立字形ID映射，按照官方逻辑
+
+    // Build the glyph ID mapping following the official logic
     this.buildGlyphIdMap();
   }
 
@@ -318,7 +318,7 @@ class CmapTable {
     
     if (f.src.glyphs) {
       f.src.glyphs.forEach((glyph, index) => {
-        f.glyph_id[glyph.code] = index + 1; // 字形ID从1开始
+        f.glyph_id[glyph.code] = index + 1; // Glyph IDs start at 1
       });
     }
   }
@@ -338,7 +338,7 @@ class CmapTable {
   }
 
   getMapNumber() {
-    // 返回子表数量，需要先确保已经生成了子表计划
+    // Returns the subtable count; ensure the subtable plan has been built first
     if (!this.subtables_plan) {
       const f = this.font;
       if (!f.src.glyphs || f.src.glyphs.length === 0) {
@@ -360,7 +360,7 @@ class CmapTable {
     
     for (let code = min_code; code <= max_code; code++) {
       const glyph_id = f.glyph_id[code] || 0;
-      // format0的数据格式是相对于start_glyph_id的偏移
+      // format0 data values are offsets relative to start_glyph_id
       data.push(glyph_id ? glyph_id - start_glyph_id : 0);
     }
     
@@ -376,13 +376,13 @@ class CmapTable {
       let g = this.glyphByCode(code);
       let id = f.glyph_id[g.code];
 
-      let code_delta = code - codepoints[0];  // 关键：相对于第一个代码点的偏移
+      let code_delta = code - codepoints[0];  // Key point: offset relative to the first codepoint
       let id_delta = id - start_glyph_id;
 
       if (code_delta < 0 || code_delta > 65535) throw new Error('Codepoint delta out of range');
       if (id_delta < 0 || id_delta > 65535) throw new Error('Glyph ID delta out of range');
 
-      codepoints_list.push(code_delta);  // 推入 delta，不是原始 code
+      codepoints_list.push(code_delta);  // Push the delta, not the raw code
       ids_list.push(id_delta);
     }
 
@@ -399,7 +399,7 @@ class CmapTable {
       return new ArrayBuffer(0);
     }
 
-    // 确保只计算一次 subtables_plan
+    // Ensure the subtables_plan is computed only once
     if (!this.subtables_plan) {
       this.subtables_plan = cmap_build_subtables(f.src.glyphs.map(g => g.code));
     }
@@ -436,7 +436,7 @@ class CmapTable {
         has_ids = true;
         let d = this.collect_format0_data(min_code, max_code, start_glyph_id);
         entries_count = d.length;
-        // 严格按照官方：Buffer.from(d)
+        // Matches the official Buffer.from(d)
         glyph_ptr = this.balign4(this.uint8ArrayToBuffer(new Uint8Array(d)));
       } else if (format === 'sparse_tiny') {
         has_charcodes = true;
@@ -452,13 +452,13 @@ class CmapTable {
         glyph_ptr = this.align4(this.uint16ArrayToBuffer(new Uint16Array(d.ids)));
       }
 
-      // 写入 cmap 头部 - 严格按照官方逻辑
+      // Write the cmap header - follows the official logic exactly
       let ofs = idx * cmap_size;
       cmaps_view.setUint32(ofs, min_code, true); ofs += 4;
       cmaps_view.setUint16(ofs, max_code - min_code + 1, true); ofs += 2;
       cmaps_view.setUint16(ofs, start_glyph_id, true); ofs += 2;
-      // 关键：写入指针的同时立即更新 total_data_offset
-      writePTR(has_charcodes ? total_data_offset : 0, ofs); ofs += ptr_size; 
+      // Key point: update total_data_offset immediately after writing each pointer
+      writePTR(has_charcodes ? total_data_offset : 0, ofs); ofs += ptr_size;
       total_data_offset += unicode_ptr.byteLength;
       writePTR(has_ids ? total_data_offset : 0, ofs); ofs += ptr_size; 
       total_data_offset += glyph_ptr.byteLength;
@@ -497,8 +497,8 @@ class CmapTable {
   }
 
   uint16ArrayToBuffer(uint16Array) {
-    // 严格按照官方的处理方式：直接使用 Uint16Array 的 buffer
-    // 这等价于官方的 Buffer.from(Uint16Array.from(d.codes).buffer)
+    // Follows the official approach: use the Uint16Array buffer directly
+    // Equivalent to the official Buffer.from(Uint16Array.from(d.codes).buffer)
     return uint16Array.buffer.slice(0, uint16Array.byteLength);
   }
 
@@ -517,14 +517,14 @@ class CmapTable {
   }
 }
 
-// Kern 表格处理器（简化版，不支持 kerning）
+// Kern table handler (simplified; kerning is not supported)
 class KernTable {
   constructor(font) {
     this.font = font;
   }
 
   toCBin(ptr_size) {
-    // 简化版：不支持 kerning，返回空 buffer
+    // Simplified version: kerning is not supported, return an empty buffer
     return new ArrayBuffer(0);
   }
 }

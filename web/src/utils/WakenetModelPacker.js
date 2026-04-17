@@ -1,33 +1,33 @@
 /**
- * WakenetModelPacker 类
- * 模仿 pack_model.py 的功能，用于在浏览器端打包唤醒词模型
- * 
- * 注意：已修复与Python版本的兼容性问题：
- * - 使用ASCII编码而非UTF-8编码
- * - 确保小端序整数格式一致
- * - 移除冗余的字符串替换操作
- * 
- * 打包格式：
+ * WakenetModelPacker class
+ * Mirrors pack_model.py so that wake-word models can be packaged in the browser.
+ *
+ * Note: compatibility issues with the Python version have been resolved:
+ * - Uses ASCII encoding rather than UTF-8
+ * - Ensures consistent little-endian integer format
+ * - Removes redundant string-replacement operations
+ *
+ * Packaging format:
  * {
- *     model_num: int (4字节)
+ *     model_num: int (4 bytes)
  *     model1_info: model_info_t
  *     model2_info: model_info_t
  *     ...
- *     model1数据
- *     model2数据
+ *     model1 data
+ *     model2 data
  *     ...
  * }
- * 
- * model_info_t格式：
+ *
+ * model_info_t format:
  * {
- *     model_name: char[32] (32字节)
- *     file_number: int (4字节)
- *     file1_name: char[32] (32字节)
- *     file1_start: int (4字节)  
- *     file1_len: int (4字节)
- *     file2_name: char[32] (32字节)
- *     file2_start: int (4字节)   
- *     file2_len: int (4字节)
+ *     model_name: char[32] (32 bytes)
+ *     file_number: int (4 bytes)
+ *     file1_name: char[32] (32 bytes)
+ *     file1_start: int (4 bytes)
+ *     file1_len: int (4 bytes)
+ *     file2_name: char[32] (32 bytes)
+ *     file2_start: int (4 bytes)
+ *     file2_len: int (4 bytes)
  *     ...
  * }
  */
@@ -38,10 +38,10 @@ class WakenetModelPacker {
   }
 
   /**
-   * 添加模型文件
-   * @param {string} modelName - 模型名称
-   * @param {string} fileName - 文件名
-   * @param {ArrayBuffer} fileData - 文件数据
+   * Add a model file
+   * @param {string} modelName - Model name
+   * @param {string} fileName - Filename
+   * @param {ArrayBuffer} fileData - File data
    */
   addModelFile(modelName, fileName, fileData) {
     if (!this.models.has(modelName)) {
@@ -51,9 +51,9 @@ class WakenetModelPacker {
   }
 
   /**
-   * 从share/wakenet_model或multinet_model目录加载模型
-   * @param {string} modelName - 模型名称 (例如: wn9s_nihaoxiaozhi 或 mn6_cn)
-   * @returns {Promise<boolean>} 加载是否成功
+   * Load a model from the share/wakenet_model or multinet_model directory
+   * @param {string} modelName - Model name (for example: wn9s_nihaoxiaozhi or mn6_cn)
+   * @returns {Promise<boolean>} Whether loading succeeded
    */
   async loadModelFromShare(modelName) {
     try {
@@ -61,15 +61,15 @@ class WakenetModelPacker {
       let baseUrl = ''
 
       if (modelName.startsWith('wn9')) {
-        // wakenet模型
+        // wakenet model
         modelFiles = ['_MODEL_INFO_', 'wn9_data', 'wn9_index']
         baseUrl = `./static/wakenet_model/${modelName}/`
       } else if (modelName.startsWith('mn6') || modelName.startsWith('mn7')) {
-        // multinet模型
+        // multinet model
         modelFiles = ['_MODEL_INFO_', `${modelName.substring(0, 3)}_data`, `${modelName.substring(0, 3)}_index`, 'vocab']
         baseUrl = `./static/multinet_model/${modelName}/`
-        
-        // 同时加载 fst 模型文件 (Multinet 6/7 必需)
+
+        // Also load the FST model files (required for Multinet 6/7)
         await this.loadFSTModel()
       } else {
         throw new Error(`Unknown model type: ${modelName}`)
@@ -84,36 +84,36 @@ class WakenetModelPacker {
             this.addModelFile(modelName, fileName, fileData)
             loadedFiles++
           } else {
-            console.warn(`无法加载文件: ${fileName}, status: ${response.status}`)
+            console.warn(`Unable to load file: ${fileName}, status: ${response.status}`)
           }
         } catch (error) {
-          console.warn(`加载文件失败: ${fileName}`, error)
+          console.warn(`Failed to load file: ${fileName}`, error)
         }
       }
 
       return loadedFiles === modelFiles.length
     } catch (error) {
-      console.error(`加载模型失败: ${modelName}`, error)
+      console.error(`Failed to load model: ${modelName}`, error)
       return false
     }
   }
 
   /**
-   * 加载 FST 模型文件 (Multinet 6/7 必需)
-   * @returns {Promise<boolean>} 是否加载成功
+   * Load the FST model files (required for Multinet 6/7)
+   * @returns {Promise<boolean>} Whether loading succeeded
    */
   async loadFSTModel() {
     try {
       const modelName = 'fst'
-      
-      // 如果已经加载过，直接返回
+
+      // Short-circuit if already loaded
       if (this.models.has(modelName)) {
         return true
       }
 
       const modelFiles = ['commands_cn.txt', 'commands_en.txt']
       const baseUrl = `./static/multinet_model/fst/`
-      
+
       let loadedFiles = 0
       for (const fileName of modelFiles) {
         try {
@@ -123,75 +123,75 @@ class WakenetModelPacker {
             this.addModelFile(modelName, fileName, fileData)
             loadedFiles++
           } else {
-            console.warn(`无法加载 FST 文件: ${fileName}, status: ${response.status}`)
+            console.warn(`Unable to load FST file: ${fileName}, status: ${response.status}`)
           }
         } catch (error) {
-          console.warn(`加载 FST 文件失败: ${fileName}`, error)
+          console.warn(`Failed to load FST file: ${fileName}`, error)
         }
       }
-      
+
       return loadedFiles > 0
     } catch (error) {
-      console.error('加载 FST 模型失败', error)
+      console.error('Failed to load FST model', error)
       return false
     }
   }
 
   /**
-   * 将字符串打包为固定长度的二进制数据
-   * 模仿Python版本的struct_pack_string行为，使用ASCII编码
-   * @param {string} string - 输入字符串
-   * @param {number} maxLen - 最大长度
-   * @returns {Uint8Array} 打包后的二进制数据
+   * Pack a string into a fixed-length byte array.
+   * Mirrors the Python version's struct_pack_string behavior using ASCII encoding.
+   * @param {string} string - Input string
+   * @param {number} maxLen - Maximum length
+   * @returns {Uint8Array} Packed binary data
    */
   packString(string, maxLen) {
     const bytes = new Uint8Array(maxLen)
-    
-    // 使用ASCII编码，与Python版本保持一致
-    // 不预留null终止符空间，完整使用maxLen字节
+
+    // Use ASCII encoding, matching the Python version.
+    // Do not reserve a null terminator; use the full maxLen bytes.
     const copyLen = Math.min(string.length, maxLen)
-    
+
     for (let i = 0; i < copyLen; i++) {
-      // 使用charCodeAt获取ASCII码，只取低8位以确保兼容性
+      // Use charCodeAt to get the ASCII code; mask to 8 bits for compatibility
       bytes[i] = string.charCodeAt(i) & 0xFF
     }
-    
-    // 剩余字节保持为0（默认初始化值）
+
+    // Remaining bytes stay 0 (default initialization)
     return bytes
   }
 
   /**
-   * 将32位整数转换为小端序字节数组
-   * 与Python版本的struct.pack('<I', value)保持一致
-   * @param {number} value - 整数值
-   * @returns {Uint8Array} 4字节的小端序数组
+   * Convert a 32-bit integer to a little-endian byte array.
+   * Matches the Python version's struct.pack('<I', value).
+   * @param {number} value - Integer value
+   * @returns {Uint8Array} 4-byte little-endian array
    */
   packUint32(value) {
     const bytes = new Uint8Array(4)
-    bytes[0] = value & 0xFF          // 最低字节 (LSB)
-    bytes[1] = (value >> 8) & 0xFF   // 
-    bytes[2] = (value >> 16) & 0xFF  // 
-    bytes[3] = (value >> 24) & 0xFF  // 最高字节 (MSB)
+    bytes[0] = value & 0xFF          // Least significant byte (LSB)
+    bytes[1] = (value >> 8) & 0xFF   //
+    bytes[2] = (value >> 16) & 0xFF  //
+    bytes[3] = (value >> 24) & 0xFF  // Most significant byte (MSB)
     return bytes
   }
 
   /**
-   * 打包所有模型为srmodels.bin格式
-   * @returns {ArrayBuffer} 打包后的二进制数据
+   * Pack all models into the srmodels.bin format
+   * @returns {ArrayBuffer} Packed binary data
    */
   packModels() {
     if (this.models.size === 0) {
-      throw new Error('没有模型数据可打包')
+      throw new Error('No model data to pack')
     }
 
-    // 计算所有文件的总数和数据
+    // Compute the total number of files and gather their data
     let totalFileNum = 0
     const modelDataList = []
-    
-    // 按模型名排序遍历
+
+    // Iterate in model-name order
     for (const [modelName, files] of Array.from(this.models.entries()).sort((a, b) => a[0].localeCompare(b[0]))) {
       totalFileNum += files.size
-      // 按文件名排序，确保与Python版本顺序一致
+      // Sort files by name to match the Python version's ordering
       const sortedFiles = Array.from(files.entries()).sort((a, b) => a[0].localeCompare(b[0]))
       modelDataList.push({
         name: modelName,
@@ -199,50 +199,50 @@ class WakenetModelPacker {
       })
     }
 
-    // 计算头部长度: 模型数量(4) + 每个模型信息(32+4+文件数*(32+4+4))
+    // Compute header length: model count (4) + each model info (32+4 + num_files*(32+4+4))
     const modelNum = this.models.size
     let headerLen = 4 // model_num
-    
+
     for (const model of modelDataList) {
       headerLen += 32 + 4 // model_name + file_number
-      headerLen += model.files.length * (32 + 4 + 4) // 每个文件的 name + start + len
+      headerLen += model.files.length * (32 + 4 + 4) // per-file name + start + len
     }
 
-    // 创建输出缓冲区
+    // Allocate the output buffer
     const totalSize = headerLen + Array.from(this.models.values())
       .reduce((total, files) => total + Array.from(files.values())
         .reduce((fileTotal, fileData) => fileTotal + fileData.byteLength, 0), 0)
-    
+
     const output = new Uint8Array(totalSize)
     let offset = 0
 
-    // 写入模型数量
+    // Write the model count
     output.set(this.packUint32(modelNum), offset)
     offset += 4
 
-    // 写入模型信息头
+    // Write model info headers
     let dataOffset = headerLen
-    
+
     for (const model of modelDataList) {
-      // 写入模型名称
+      // Write the model name
       output.set(this.packString(model.name, 32), offset)
       offset += 32
-      
-      // 写入文件数量
+
+      // Write the file count
       output.set(this.packUint32(model.files.length), offset)
       offset += 4
 
-      // 写入每个文件的信息
+      // Write info for each file
       for (const [fileName, fileData] of model.files) {
-        // 文件名
+        // Filename
         output.set(this.packString(fileName, 32), offset)
         offset += 32
-        
-        // 文件起始位置
+
+        // File start position
         output.set(this.packUint32(dataOffset), offset)
         offset += 4
-        
-        // 文件长度
+
+        // File length
         output.set(this.packUint32(fileData.byteLength), offset)
         offset += 4
 
@@ -250,7 +250,7 @@ class WakenetModelPacker {
       }
     }
 
-    // 写入文件数据
+    // Write file payloads
     for (const model of modelDataList) {
       for (const [fileName, fileData] of model.files) {
         output.set(new Uint8Array(fileData), offset)
@@ -262,10 +262,10 @@ class WakenetModelPacker {
   }
 
   /**
-   * 验证模型名称是否有效
-   * @param {string} modelName - 模型名称
-   * @param {string} chipModel - 芯片型号
-   * @returns {boolean} 是否有效
+   * Validate whether a model name is valid
+   * @param {string} modelName - Model name
+   * @param {string} chipModel - Chip model
+   * @returns {boolean} Whether the model is valid
    */
   static isValidModel(modelName, chipModel) {
     const isC3OrC6 = chipModel === 'esp32c3' || chipModel === 'esp32c6'
@@ -278,15 +278,15 @@ class WakenetModelPacker {
   }
 
   /**
-   * 清理已加载的模型数据
+   * Clear the loaded model data
    */
   clear() {
     this.models.clear()
   }
 
   /**
-   * 获取已加载的模型统计
-   * @returns {Object} 统计信息
+   * Get statistics for the loaded models
+   * @returns {Object} Statistics
    */
   getStats() {
     let totalFiles = 0
@@ -308,16 +308,16 @@ class WakenetModelPacker {
   }
 
   /**
-   * 验证打包格式的兼容性
-   * 用于测试与Python版本的一致性
-   * @returns {Object} 验证结果
+   * Validate packing-format compatibility.
+   * Used to check consistency with the Python version.
+   * @returns {Object} Validation result
    */
   validatePackingCompatibility() {
-    // 测试字符串打包
+    // Test string packing
     const testString = "test_model"
     const packedString = this.packString(testString, 32)
-    
-    // 测试整数打包
+
+    // Test integer packing
     const testInt = 0x12345678
     const packedInt = this.packUint32(testInt)
     
