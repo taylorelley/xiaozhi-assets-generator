@@ -338,10 +338,10 @@ const getWakewordName = () => {
   
   if (wakeword.type === 'preset') {
     const names = {
-      'wn9s_hilexin': 'Hi,乐鑫',
-      'wn9s_hiesp': 'Hi,ESP',
-      'wn9s_nihaoxiaozhi': '你好小智',
-      'wn9_nihaoxiaozhi_tts': '你好小智',
+      'wn9s_hilexin': 'Hi, Espressif',
+      'wn9s_hiesp': 'Hi, ESP',
+      'wn9s_nihaoxiaozhi': 'Hello LittleWise',
+      'wn9_nihaoxiaozhi_tts': 'Hello LittleWise',
       'wn9_alexa': 'Alexa'
     }
     return names[wakeword.preset] || wakeword.preset

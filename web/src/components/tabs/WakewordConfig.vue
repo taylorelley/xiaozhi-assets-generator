@@ -184,84 +184,87 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-// 完整的唤醒词配置数据
+// Full wake-word catalog. Display names are English; the `id` is the ESP-SR
+// model identifier and must not be renamed. Chinese wake words keep English
+// romanisation here; users browsing the picker in Chinese will see translated
+// names via the i18n catalog in future iterations.
 const wakewordData = [
-  // WakeNet9s (C3/C5/C6 芯片支持)
-  { id: 'wn9s_hilexin', name: 'Hi,乐鑫', model: 'WakeNet9s' },
-  { id: 'wn9s_hiesp', name: 'Hi,ESP', model: 'WakeNet9s' },
-  { id: 'wn9s_nihaoxiaozhi', name: '你好小智', model: 'WakeNet9s' },
-  { id: 'wn9s_hijason', name: 'Hi,Jason', model: 'WakeNet9s' },
+  // WakeNet9s (supported on C3/C5/C6 chips)
+  { id: 'wn9s_hilexin', name: 'Hi, Espressif', model: 'WakeNet9s' },
+  { id: 'wn9s_hiesp', name: 'Hi, ESP', model: 'WakeNet9s' },
+  { id: 'wn9s_nihaoxiaozhi', name: 'Hello LittleWise', model: 'WakeNet9s' },
+  { id: 'wn9s_hijason', name: 'Hi, Jason', model: 'WakeNet9s' },
   { id: 'wn9s_alexa', name: 'Alexa', model: 'WakeNet9s' },
-  
-  // WakeNet9 (S3/P4 芯片支持)
-  { id: 'wn9_hilexin', name: 'Hi,乐鑫', model: 'WakeNet9' },
-  { id: 'wn9_hiesp', name: 'Hi,ESP', model: 'WakeNet9' },
-  { id: 'wn9_nihaoxiaozhi_tts', name: '你好小智', model: 'WakeNet9' },
-  { id: 'wn9_hijason_tts2', name: 'Hi,Jason', model: 'WakeNet9' },
-  { id: 'wn9_nihaomiaoban_tts2', name: '你好喵伴', model: 'WakeNet9' },
-  { id: 'wn9_xiaoaitongxue', name: '小爱同学', model: 'WakeNet9' },
-  { id: 'wn9_himfive', name: 'Hi,M Five', model: 'WakeNet9' },
+
+  // WakeNet9 (supported on S3/P4 chips)
+  { id: 'wn9_hilexin', name: 'Hi, Espressif', model: 'WakeNet9' },
+  { id: 'wn9_hiesp', name: 'Hi, ESP', model: 'WakeNet9' },
+  { id: 'wn9_nihaoxiaozhi_tts', name: 'Hello LittleWise', model: 'WakeNet9' },
+  { id: 'wn9_hijason_tts2', name: 'Hi, Jason', model: 'WakeNet9' },
+  { id: 'wn9_nihaomiaoban_tts2', name: 'Hello Meow Mate', model: 'WakeNet9' },
+  { id: 'wn9_xiaoaitongxue', name: 'Xiaoai Classmate', model: 'WakeNet9' },
+  { id: 'wn9_himfive', name: 'Hi, M Five', model: 'WakeNet9' },
   { id: 'wn9_alexa', name: 'Alexa', model: 'WakeNet9' },
   { id: 'wn9_jarvis_tts', name: 'Jarvis', model: 'WakeNet9' },
   { id: 'wn9_computer_tts', name: 'Computer', model: 'WakeNet9' },
-  { id: 'wn9_heywillow_tts', name: 'Hey,Willow', model: 'WakeNet9' },
+  { id: 'wn9_heywillow_tts', name: 'Hey, Willow', model: 'WakeNet9' },
   { id: 'wn9_sophia_tts', name: 'Sophia', model: 'WakeNet9' },
   { id: 'wn9_mycroft_tts', name: 'Mycroft', model: 'WakeNet9' },
-  { id: 'wn9_heyprinter_tts', name: 'Hey,Printer', model: 'WakeNet9' },
-  { id: 'wn9_hijoy_tts', name: 'Hi,Joy', model: 'WakeNet9' },
-  { id: 'wn9_heywanda_tts', name: 'Hey,Wand', model: 'WakeNet9' },
+  { id: 'wn9_heyprinter_tts', name: 'Hey, Printer', model: 'WakeNet9' },
+  { id: 'wn9_hijoy_tts', name: 'Hi, Joy', model: 'WakeNet9' },
+  { id: 'wn9_heywanda_tts', name: 'Hey, Wand', model: 'WakeNet9' },
   { id: 'wn9_astrolabe_tts', name: 'Astrolabe', model: 'WakeNet9' },
-  { id: 'wn9_heyily_tts2', name: 'Hey,Ily', model: 'WakeNet9' },
-  { id: 'wn9_hijolly_tts2', name: 'Hi,Jolly', model: 'WakeNet9' },
-  { id: 'wn9_hifairy_tts2', name: 'Hi,Fairy', model: 'WakeNet9' },
+  { id: 'wn9_heyily_tts2', name: 'Hey, Ily', model: 'WakeNet9' },
+  { id: 'wn9_hijolly_tts2', name: 'Hi, Jolly', model: 'WakeNet9' },
+  { id: 'wn9_hifairy_tts2', name: 'Hi, Fairy', model: 'WakeNet9' },
   { id: 'wn9_bluechip_tts2', name: 'Blue Chip', model: 'WakeNet9' },
-  { id: 'wn9_hiandy_tts2', name: 'Hi,Andy', model: 'WakeNet9' },
-  { id: 'wn9_heyivy_tts2', name: 'Hey,Ivy', model: 'WakeNet9' },
-  { id: 'wn9_histackchan_tts3', name: 'Hi,Stack Chan', model: 'WakeNet9' },
-  { id: 'wn9_hiwalle_tts2', name: 'Hi,Wall E', model: 'WakeNet9' },
-  { id: 'wn9_nihaoxiaoxin_tts', name: '你好小鑫', model: 'WakeNet9' },
-  { id: 'wn9_xiaomeitongxue_tts', name: '小美同学', model: 'WakeNet9' },
-  { id: 'wn9_hixiaoxing_tts', name: 'Hi,小星', model: 'WakeNet9' },
-  { id: 'wn9_xiaolongxiaolong_tts', name: '小龙小龙', model: 'WakeNet9' },
-  { id: 'wn9_miaomiaotongxue_tts', name: '喵喵同学', model: 'WakeNet9' },
-  { id: 'wn9_himiaomiao_tts', name: 'Hi,喵喵', model: 'WakeNet9' },
-  { id: 'wn9_hilili_tts', name: 'Hi,Lily', model: 'WakeNet9' },
-  { id: 'wn9_hitelly_tts', name: 'Hi,Telly', model: 'WakeNet9' },
-  { id: 'wn9_xiaobinxiaobin_tts', name: '小滨小滨', model: 'WakeNet9' },
-  { id: 'wn9_haixiaowu_tts', name: 'Hi,小巫', model: 'WakeNet9' },
-  { id: 'wn9_xiaoyaxiaoya_tts2', name: '小鸭小鸭', model: 'WakeNet9' },
-  { id: 'wn9_linaiban_tts2', name: '璃奈板', model: 'WakeNet9' },
-  { id: 'wn9_xiaosurou_tts2', name: '小酥肉', model: 'WakeNet9' },
-  { id: 'wn9_xiaoyutongxue_tts2', name: '小宇同学', model: 'WakeNet9' },
-  { id: 'wn9_xiaomingtongxue_tts2', name: '小明同学', model: 'WakeNet9' },
-  { id: 'wn9_xiaokangtongxue_tts2', name: '小康同学', model: 'WakeNet9' },
-  { id: 'wn9_xiaojianxiaojian_tts2', name: '小箭小箭', model: 'WakeNet9' },
-  { id: 'wn9_xiaotexiaote_tts2', name: '小特小特', model: 'WakeNet9' },
-  { id: 'wn9_nihaoxiaoyi_tts2', name: '你好小益', model: 'WakeNet9' },
-  { id: 'wn9_nihaobaiying_tts2', name: '你好百应', model: 'WakeNet9' },
-  { id: 'wn9_xiaoluxiaolu_tts2', name: '小鹿小鹿', model: 'WakeNet9' },
-  { id: 'wn9_nihaodongdong_tts2', name: '你好东东', model: 'WakeNet9' },
-  { id: 'wn9_nihaoxiaoan_tts2', name: '你好小安', model: 'WakeNet9' },
-  { id: 'wn9_ni3hao3xiao3mai4_tts2', name: '你好小脉', model: 'WakeNet9' },
-  { id: 'wn9_ni3hao3xiao3rui4_tts3', name: '你好小瑞', model: 'WakeNet9' },
-  { id: 'wn9_hai1xiao3ou1_tts3', name: '嗨小欧', model: 'WakeNet9' },
-  { id: 'wn9_xiao3jia1xiao3jia1_tts3', name: '小珈小珈', model: 'WakeNet9' },
-  { id: 'wn9_xiao3feng1xiao3feng1_tts3', name: '小峰小峰', model: 'WakeNet9' }
+  { id: 'wn9_hiandy_tts2', name: 'Hi, Andy', model: 'WakeNet9' },
+  { id: 'wn9_heyivy_tts2', name: 'Hey, Ivy', model: 'WakeNet9' },
+  { id: 'wn9_histackchan_tts3', name: 'Hi, Stack Chan', model: 'WakeNet9' },
+  { id: 'wn9_hiwalle_tts2', name: 'Hi, Wall-E', model: 'WakeNet9' },
+  { id: 'wn9_nihaoxiaoxin_tts', name: 'Hello Xiaoxin', model: 'WakeNet9' },
+  { id: 'wn9_xiaomeitongxue_tts', name: 'Xiaomei Classmate', model: 'WakeNet9' },
+  { id: 'wn9_hixiaoxing_tts', name: 'Hi, Xiaoxing', model: 'WakeNet9' },
+  { id: 'wn9_xiaolongxiaolong_tts', name: 'Xiaolong Xiaolong', model: 'WakeNet9' },
+  { id: 'wn9_miaomiaotongxue_tts', name: 'Miaomiao Classmate', model: 'WakeNet9' },
+  { id: 'wn9_himiaomiao_tts', name: 'Hi, Miaomiao', model: 'WakeNet9' },
+  { id: 'wn9_hilili_tts', name: 'Hi, Lily', model: 'WakeNet9' },
+  { id: 'wn9_hitelly_tts', name: 'Hi, Telly', model: 'WakeNet9' },
+  { id: 'wn9_xiaobinxiaobin_tts', name: 'Xiaobin Xiaobin', model: 'WakeNet9' },
+  { id: 'wn9_haixiaowu_tts', name: 'Hi, Xiaowu', model: 'WakeNet9' },
+  { id: 'wn9_xiaoyaxiaoya_tts2', name: 'Xiaoya Xiaoya', model: 'WakeNet9' },
+  { id: 'wn9_linaiban_tts2', name: 'Linai Pad', model: 'WakeNet9' },
+  { id: 'wn9_xiaosurou_tts2', name: 'Xiao Su Rou', model: 'WakeNet9' },
+  { id: 'wn9_xiaoyutongxue_tts2', name: 'Xiaoyu Classmate', model: 'WakeNet9' },
+  { id: 'wn9_xiaomingtongxue_tts2', name: 'Xiaoming Classmate', model: 'WakeNet9' },
+  { id: 'wn9_xiaokangtongxue_tts2', name: 'Xiaokang Classmate', model: 'WakeNet9' },
+  { id: 'wn9_xiaojianxiaojian_tts2', name: 'Xiaojian Xiaojian', model: 'WakeNet9' },
+  { id: 'wn9_xiaotexiaote_tts2', name: 'Xiaote Xiaote', model: 'WakeNet9' },
+  { id: 'wn9_nihaoxiaoyi_tts2', name: 'Hello Xiaoyi', model: 'WakeNet9' },
+  { id: 'wn9_nihaobaiying_tts2', name: 'Hello Baiying', model: 'WakeNet9' },
+  { id: 'wn9_xiaoluxiaolu_tts2', name: 'Xiaolu Xiaolu', model: 'WakeNet9' },
+  { id: 'wn9_nihaodongdong_tts2', name: 'Hello Dongdong', model: 'WakeNet9' },
+  { id: 'wn9_nihaoxiaoan_tts2', name: 'Hello Xiaoan', model: 'WakeNet9' },
+  { id: 'wn9_ni3hao3xiao3mai4_tts2', name: 'Hello Xiaomai', model: 'WakeNet9' },
+  { id: 'wn9_ni3hao3xiao3rui4_tts3', name: 'Hello Xiaorui', model: 'WakeNet9' },
+  { id: 'wn9_hai1xiao3ou1_tts3', name: 'Hey Xiao-Ou', model: 'WakeNet9' },
+  { id: 'wn9_xiao3jia1xiao3jia1_tts3', name: 'Xiaojia Xiaojia', model: 'WakeNet9' },
+  { id: 'wn9_xiao3feng1xiao3feng1_tts3', name: 'Xiaofeng Xiaofeng', model: 'WakeNet9' }
 ]
 
-// 判断芯片是否支持 WakeNet9
+// Returns true when the chip supports full-size WakeNet9 models.
 const supportWakeNet9 = computed(() => {
   const chip = props.chipModel.toLowerCase()
   return chip === 'esp32s3' || chip === 'esp32p4'
 })
 
-// 判断芯片是否支持 WakeNet9s
+// Returns true when the chip supports the lightweight WakeNet9s models.
 const supportWakeNet9s = computed(() => {
   const chip = props.chipModel.toLowerCase()
   return chip === 'esp32c3' || chip === 'esp32c5' || chip === 'esp32c6'
 })
 
-// 判断芯片是否支持自定义唤醒词 (MultiNet 目前主要支持 S3)
+// Returns true when the chip can run custom wake words (MultiNet — S3-only today).
 const supportCustom = computed(() => {
   const chip = props.chipModel.toLowerCase()
   return chip === 'esp32s3'
@@ -269,7 +272,7 @@ const supportCustom = computed(() => {
 
 const canUseAnyWakeword = computed(() => supportWakeNet9.value || supportWakeNet9s.value)
 
-// 根据芯片型号过滤可用的唤醒词
+// Wake words available for the currently selected chip.
 const availableWakewords = computed(() => {
   if (supportWakeNet9.value) {
     return wakewordData.filter(w => w.model === 'WakeNet9')
@@ -285,7 +288,7 @@ const localCustom = ref({
   command: '',
   threshold: 20,
   duration: 3000,
-  model: 'mn6_cn'
+  model: 'mn6_en'
 })
 
 const errors = ref({

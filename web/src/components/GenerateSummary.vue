@@ -508,15 +508,15 @@ const changeEmotion = (emotionKey) => {
 }
 
 
-// 配置摘要方法
+// Build the configuration summary displayed in step 3.
 const getWakewordName = () => {
   const wakeword = props.config.theme.wakeword
   if (!wakeword || wakeword.type === 'none') return t('wakewordConfig.noWakeword')
-  
+
   if (wakeword.type === 'preset') {
     const names = {
-      'wn9s_hilexin': 'Hi,乐鑫', 'wn9s_hiesp': 'Hi,ESP', 'wn9s_nihaoxiaozhi': '你好小智',
-      'wn9_nihaoxiaozhi_tts': '你好小智', 'wn9_alexa': 'Alexa', 'wn9_jarvis_tts': 'Jarvis'
+      'wn9s_hilexin': 'Hi, Espressif', 'wn9s_hiesp': 'Hi, ESP', 'wn9s_nihaoxiaozhi': 'Hello LittleWise',
+      'wn9_nihaoxiaozhi_tts': 'Hello LittleWise', 'wn9_alexa': 'Alexa', 'wn9_jarvis_tts': 'Jarvis'
     }
     return names[wakeword.preset] || wakeword.preset
   }
@@ -530,7 +530,7 @@ const getWakewordName = () => {
 
 const getFontName = () => {
   if (props.config.theme.font.type === 'preset') {
-    // 使用国际化翻译获取预设字体名称
+    // Resolve the preset font's display name via the i18n catalog.
     return t('fontConfig.presetFontNames.' + props.config.theme.font.preset) || props.config.theme.font.preset
   } else {
     const custom = props.config.theme.font.custom
