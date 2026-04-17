@@ -7,7 +7,7 @@
       </p>
     </div>
 
-    <!-- 不支持唤醒词的提示 -->
+    <!-- Notice shown when the chip does not support wake words -->
     <div v-if="!canUseAnyWakeword" class="bg-orange-50 border border-orange-200 rounded-lg p-4">
       <div class="text-sm text-orange-800">
         <strong>{{ $t('wakewordConfig.notice') }}</strong>
@@ -16,7 +16,7 @@
     </div>
 
     <div v-else class="space-y-6">
-      <!-- 唤醒词类型选择 -->
+      <!-- Wake-word type selector -->
       <div class="flex space-x-4">
         <button
           @click="setWakewordType('none')"
@@ -54,7 +54,7 @@
         </button>
       </div>
 
-      <!-- 预设唤醒词选择 -->
+      <!-- Preset wake-word selector -->
       <div v-if="modelValue.type === 'preset'" class="space-y-4">
         <label class="block text-sm font-medium text-gray-700">{{ $t('wakewordConfig.selectWakeword') }}</label>
         <div class="relative">
@@ -74,7 +74,7 @@
         </div>
       </div>
 
-      <!-- 自定义唤醒词设置 -->
+      <!-- Custom wake-word settings -->
       <div v-if="modelValue.type === 'custom'" class="space-y-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
         <h4 class="font-medium text-gray-900">{{ $t('wakewordConfig.customSettings') }}</h4>
         
@@ -149,7 +149,7 @@
         </div>
       </div>
 
-      <!-- 提示信息 -->
+      <!-- Tips -->
       <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <div class="text-sm text-blue-800">
           <strong>{{ $t('wakewordConfig.tips.tipLabel') }}</strong>
@@ -345,7 +345,7 @@ const selectPresetWakeword = (id) => {
   })
 }
 
-// 监听本地自定义设置变化并同步到父组件
+// Watch local custom settings and sync changes back to the parent
 watch(localCustom, (newVal) => {
   if (isUpdatingFromProps.value) return
   
@@ -358,7 +358,7 @@ watch(localCustom, (newVal) => {
   }
 }, { deep: true })
 
-// 监听父组件属性变化并同步到本地
+// Watch parent prop changes and sync them into local state
 watch(() => props.modelValue.custom, (newVal) => {
   if (newVal) {
     isUpdatingFromProps.value = true

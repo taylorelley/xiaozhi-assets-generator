@@ -109,9 +109,9 @@
             </div>
             
             <div v-else class="space-y-2">
-              <img 
+              <img
                 :src="getImagePreview('light')"
-                alt="{{ $t('backgroundConfig.lightModePreview') }}背景"
+                alt="{{ $t('backgroundConfig.lightModePreview') }} background"
                 class="max-w-32 max-h-32 mx-auto rounded shadow"
               >
               <p class="text-sm text-green-700 font-medium">{{ modelValue.light.backgroundImage.name }}</p>
@@ -251,9 +251,9 @@
             </div>
             
             <div v-else class="space-y-2">
-              <img 
+              <img
                 :src="getImagePreview('dark')"
-                alt="{{ $t('backgroundConfig.darkModePreview') }}背景"
+                alt="{{ $t('backgroundConfig.darkModePreview') }} background"
                 class="max-w-32 max-h-32 mx-auto rounded shadow"
               >
               <p class="text-sm text-green-700 font-medium">{{ modelValue.dark.backgroundImage.name }}</p>
@@ -289,7 +289,7 @@
       </div>
     </div>
 
-    <!-- 预览区域 -->
+    <!-- Preview area -->
     <div class="space-y-4">
       <h4 class="font-medium text-gray-900">{{ $t('backgroundConfig.backgroundPreview') }}</h4>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -487,7 +487,7 @@ const updateBackgroundImage = async (mode, file) => {
       }
     })
 
-    // 自动保存背景图片到存储
+    // Automatically save the background image to storage
     await StorageHelper.saveBackgroundFile(mode, file)
   } else {
     alert(t('backgroundConfig.selectValidImage'))
@@ -503,7 +503,7 @@ const removeImage = async (mode) => {
     }
   })
   
-  // 清空文件输入
+  // Clear the file input
   if (mode === 'light' && lightImageInput.value) {
     lightImageInput.value.value = ''
   }
@@ -511,7 +511,7 @@ const removeImage = async (mode) => {
     darkImageInput.value.value = ''
   }
 
-  // 删除存储中的背景文件
+  // Delete the background file from storage
   await StorageHelper.deleteBackgroundFile(mode)
 }
 
@@ -547,7 +547,7 @@ const getDarkPreviewStyle = () => {
 }
 
 const applyPresetColors = (lightColor, darkColor) => {
-  // 根据背景色智能选择文字色
+  // Pick an appropriate text color based on the background color
   const lightTextColor = isLightColor(lightColor) ? '#000000' : '#ffffff'
   const darkTextColor = isLightColor(darkColor) ? '#000000' : '#ffffff'
   
@@ -570,7 +570,7 @@ const applyPresetColors = (lightColor, darkColor) => {
   })
 }
 
-// 判断颜色是否为浅色
+// Determine whether a color is a light color
 const isLightColor = (color) => {
   const hex = color.replace('#', '')
   const r = parseInt(hex.substr(0, 2), 16)

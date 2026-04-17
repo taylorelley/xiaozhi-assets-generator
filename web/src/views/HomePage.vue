@@ -434,7 +434,7 @@ const loadConfigFromStorage = async () => {
       isAutoSaveEnabled.value = false
     }
   } catch (error) {
-    console.error('加载配置失败:', error)
+    console.error('Failed to load configuration:', error)
     hasStoredConfig.value = false
     isAutoSaveEnabled.value = false
   } finally {
@@ -442,80 +442,80 @@ const loadConfigFromStorage = async () => {
   }
 }
 
-// 清理旧版本表情数据（强制使用新的 hash 结构）
+// Clean up legacy emoji data (force the new hash-based structure)
 const cleanupLegacyEmojiData = async () => {
   try {
     const emojiCustom = config.value?.theme?.emoji?.custom
     if (!emojiCustom) return
-    
-    // 检查是否使用旧结构（有 images 但没有 fileMap 和 emotionMap）
+
+    // Check whether the legacy structure is in use (images but no fileMap / emotionMap)
     const hasImages = Object.keys(emojiCustom.images || {}).length > 0
     const hasFileMap = emojiCustom.fileMap && Object.keys(emojiCustom.fileMap).length > 0
     const hasEmotionMap = emojiCustom.emotionMap && Object.keys(emojiCustom.emotionMap).length > 0
     const hasOldStructure = hasImages && (!hasFileMap || !hasEmotionMap)
-    
+
     if (hasOldStructure) {
-      console.warn('⚠️ 检测到旧版本的表情数据结构（不兼容）')
-      console.log('正在清理旧数据...')
-      
-      // 清除存储中的旧表情文件
+      console.warn('Detected legacy emoji data structure (incompatible)')
+      console.log('Cleaning up legacy data...')
+
+      // Remove legacy emoji files from storage
       try {
         const oldEmotions = Object.keys(emojiCustom.images || {})
         for (const emotion of oldEmotions) {
           await configStorage.deleteFile(`emoji_${emotion}`)
         }
-        console.log(`已删除 ${oldEmotions.length} 个旧表情文件`)
+        console.log(`Deleted ${oldEmotions.length} legacy emoji files`)
       } catch (error) {
-        console.warn('清理旧表情文件时出错:', error)
+        console.warn('Error while cleaning up legacy emoji files:', error)
       }
-      
-      // 重置为新的空结构
+
+      // Reset to the new empty structure
       config.value.theme.emoji.custom = {
         size: emojiCustom.size || { width: 64, height: 64 },
         images: {},
         fileMap: {},
         emotionMap: {}
       }
-      
-      // 如果当前在使用自定义表情，重置为未选择状态
+
+      // If custom emojis were currently in use, reset the selection
       if (config.value.theme.emoji.type === 'custom') {
         config.value.theme.emoji.type = ''
-        console.log('已重置表情类型，请重新选择')
+        console.log('Emoji type reset; please choose again')
       }
-      
-      // 立即保存清理后的配置
+
+      // Persist the cleaned configuration immediately
       await saveConfigToStorage()
-      
-      console.log('✅ 旧表情数据已完全清除')
-      
-      // 友好的用户提示
+
+      console.log('Legacy emoji data fully cleared')
+
+      // Friendly notice to the user
       setTimeout(() => {
-        alert('检测到旧版本的表情数据结构已被清除。\n\n新版本使用文件去重技术，可以节省存储空间。\n\n请重新上传自定义表情图片。')
+        alert('A legacy emoji data structure was detected and cleared.\n\nThe new version uses file deduplication to save storage space.\n\nPlease re-upload your custom emoji images.')
       }, 500)
     }
   } catch (error) {
-    console.error('清理旧表情数据时出错:', error)
+    console.error('Error while cleaning up legacy emoji data:', error)
   }
 }
 
-// 保存配置到存储
+// Save configuration to storage
 const saveConfigToStorage = async () => {
   try {
     await configStorage.saveConfig(config.value)
   } catch (error) {
-    console.error('保存配置失败:', error)
+    console.error('Failed to save configuration:', error)
   }
 }
 
-// 确认重新开始
+// Confirm restart
 const confirmReset = async () => {
   try {
     isResetting.value = true
-    
-    // 清理 AssetsBuilder 的存储数据
+
+    // Clean up AssetsBuilder's stored data
     await assetsBuilder.clearAllStoredData()
-    
-    // 保存当前的芯片配置
+
+    // Preserve the current chip configuration
     const currentChipConfig = {
       model: config.value.chip.model,
       display: { ...config.value.chip.display }
@@ -571,41 +571,41 @@ const confirmReset = async () => {
       }
     }
     
-    // 重置步骤和状态
+    // Reset the step and related state
     currentStep.value = 0
     activeThemeTab.value = 'wakeword'
     hasStoredConfig.value = false
     isAutoSaveEnabled.value = false
-    
+
   } catch (error) {
-    console.error('重置配置失败:', error)
+    console.error('Failed to reset configuration:', error)
     alert(t('errors.resetFailed'))
   } finally {
     isResetting.value = false
   }
 }
 
-// 监听配置变化，自动保存
+// Watch for configuration changes and auto-save
 watch(config, async (newConfig) => {
   if (!isLoading.value && isAutoSaveEnabled.value) {
     await saveConfigToStorage()
   }
 }, { deep: true })
 
-// 页面加载时初始化
+// Initialize on page load
 onMounted(async () => {
   await configStorage.initialize()
   await loadConfigFromStorage()
 })
 
-// 组件卸载时清除定时器
+// Clear the timer when the component unmounts
 onUnmounted(() => {
   if (autoHideTimer.value) {
     clearTimeout(autoHideTimer.value)
   }
 })
 
-// 修改关闭按钮逻辑
+// Close-button logic
 const closeConfigNotice = () => {
   hasStoredConfig.value = false
   if (autoHideTimer.value) {
@@ -613,14 +613,14 @@ const closeConfigNotice = () => {
   }
 }
 
-// 重置自动隐藏定时器（鼠标悬停时调用）
+// Reset the auto-hide timer (invoked on mouse hover)
 const resetAutoHideTimer = () => {
-  // 清除之前的定时器
+  // Clear the previous timer
   if (autoHideTimer.value) {
     clearTimeout(autoHideTimer.value)
   }
 
-  // 设置新的5秒定时器
+  // Start a new 5-second timer
   autoHideTimer.value = setTimeout(() => {
     hasStoredConfig.value = false
   }, 5000)

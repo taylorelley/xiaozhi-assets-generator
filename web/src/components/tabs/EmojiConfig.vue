@@ -5,7 +5,7 @@
       <p class="text-gray-600">{{ $t('emojiConfig.description') }}</p>
     </div>
 
-    <!-- 表情类型选择 -->
+    <!-- Emoji type selector -->
     <div class="space-y-4">
       <div class="flex flex-wrap gap-3">
         <button
@@ -81,7 +81,7 @@
             </div>
           </div>
           
-          <!-- 表情预览网格 -->
+          <!-- Emoji preview grid -->
           <div class="grid grid-cols-7 gap-1 justify-items-center overflow-hidden">
             <div
               v-for="emotion in pack.preview"
@@ -105,9 +105,9 @@
     <div v-if="modelValue.type === 'custom'" class="space-y-6">
       <h4 class="font-medium text-gray-900">{{ $t('emojiConfig.customEmojiPackConfig') }}</h4>
       
-      <!-- 基本配置 -->
+      <!-- Basic configuration -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- 图片尺寸 -->
+        <!-- Image dimensions -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('emojiConfig.maxImageWidth') }}</label>
           <input
@@ -131,7 +131,7 @@
         </div>
       </div>
 
-      <!-- 表情图片上传 -->
+      <!-- Emoji image upload -->
       <div class="space-y-4">
         <h5 class="font-medium text-gray-900">{{ $t('emojiConfig.uploadEmojiImages') }}</h5>
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
@@ -220,9 +220,9 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 /**
- * 计算文件的 SHA-256 hash
- * @param {File} file - 文件对象
- * @returns {Promise<string>} 文件的 hash 值
+ * Compute the SHA-256 hash of a file
+ * @param {File} file - The file object
+ * @returns {Promise<string>} The hash of the file
  */
 const calculateFileHash = async (file) => {
   const buffer = await file.arrayBuffer()
@@ -267,7 +267,7 @@ const presetEmojis = [
   }
 ]
 
-// 使用计算属性来获取翻译后的表情名称
+// Use a computed property to get translated emotion names
 const emotionList = computed(() => [
   { key: 'neutral', name: t('emojiConfig.emotions.neutral'), emoji: '😶' },
   { key: 'happy', name: t('emojiConfig.emotions.happy'), emoji: '🙂' },
@@ -297,20 +297,20 @@ const localCustom = ref({
 })
 
 const setEmojiType = (type) => {
-  // 避免重复设置相同类型
+  // Avoid re-applying the same type
   if (props.modelValue.type === type) return
-  
+
   const newValue = { ...props.modelValue, type }
-  
+
   if (type === 'none') {
-    // 选择无表情包
+    // Selected "no emoji pack"
     newValue.preset = ''
     newValue.custom = {
       ...props.modelValue.custom,
       images: props.modelValue.custom.images || {}
     }
   } else if (type === 'preset') {
-    // 切换到预设表情时，保留自定义表情数据
+    // Switching to preset emojis while preserving custom emoji data
     newValue.preset = props.modelValue.preset || 'twemoji32'
     newValue.custom = {
       ...props.modelValue.custom,
@@ -328,10 +328,10 @@ const setEmojiType = (type) => {
 }
 
 const selectPresetEmoji = (id) => {
-  // 避免重复选择相同预设
+  // Avoid re-selecting the same preset
   if (props.modelValue.preset === id) return
-  
-  // 选择不同的{{ $t('emojiConfig.presetEmojiPack') }}时，保留自定义表情数据
+
+  // When selecting a different preset emoji pack, preserve custom emoji data
   emit('update:modelValue', {
     ...props.modelValue,
     preset: id,
