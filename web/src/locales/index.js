@@ -20,7 +20,9 @@ export const languageOptions = [
   { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳' }
 ]
 
-// 获取浏览器语言
+// Detect the browser's preferred language and map it to a supported locale.
+// No longer used as the default on load (the app defaults to English), but
+// kept as a helper so callers can offer a "match my browser" option.
 export function getBrowserLanguage() {
   const browserLang = navigator.language || navigator.userLanguage
   const langMap = {

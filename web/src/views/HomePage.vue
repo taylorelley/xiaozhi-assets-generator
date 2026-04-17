@@ -148,7 +148,7 @@ const config = ref({
         command: '',
         threshold: 20,
         duration: 3000,
-        model: 'mn6_cn'
+        model: 'mn6_en'
       }
     },
     font: {
@@ -521,7 +521,7 @@ const confirmReset = async () => {
       display: { ...config.value.chip.display }
     }
     
-    // 重置配置到默认值，但保留芯片配置
+    // Reset config to defaults while preserving the chip configuration
     config.value = {
       chip: currentChipConfig,
       theme: {
@@ -532,7 +532,7 @@ const confirmReset = async () => {
             name: '',
             command: '',
             threshold: 20,
-            model: 'mn6_cn'
+            model: 'mn6_en'
           }
         },
         font: {
