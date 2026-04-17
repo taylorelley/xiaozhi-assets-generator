@@ -1,15 +1,15 @@
 /**
- * StorageHelper 工具类
- * 为各个组件提供便捷的文件存储功能
+ * StorageHelper utility class
+ * Provides convenient file-storage helpers for individual components.
  */
 
 import configStorage from './ConfigStorage.js'
 
 class StorageHelper {
   /**
-   * 为字体文件提供自动保存功能
-   * @param {File} file - 字体文件
-   * @param {Object} config - 字体配置
+   * Auto-save a font file.
+   * @param {File} file - Font file
+   * @param {Object} config - Font configuration
    * @returns {Promise<void>}
    */
   static async saveFontFile(file, config = {}) {
@@ -21,49 +21,49 @@ class StorageHelper {
           bpp: config.bpp || 4,
           charset: config.charset || 'deepseek'
         })
-        console.log(`字体文件已保存: ${file.name}`)
+        console.log(`Font file saved: ${file.name}`)
       } catch (error) {
-        console.warn(`保存字体文件失败: ${file.name}`, error)
+        console.warn(`Failed to save font file: ${file.name}`, error)
       }
     }
   }
 
   /**
-   * 为表情文件提供自动保存功能
-   * @param {string} emojiName - 表情名称或文件hash（如果以hash_开头）
-   * @param {File} file - 表情文件
-   * @param {Object} config - 表情配置
+   * Auto-save an emoji file.
+   * @param {string} emojiName - Emoji name or file hash (if prefixed with `hash_`)
+   * @param {File} file - Emoji file
+   * @param {Object} config - Emoji configuration
    * @returns {Promise<void>}
    */
   static async saveEmojiFile(emojiName, file, config = {}) {
     if (file && emojiName) {
-      // 如果 emojiName 已经以 hash_ 开头（新的去重结构），直接使用
-      // 否则添加 emoji_ 前缀（旧的结构，向后兼容）
+      // When `emojiName` already starts with `hash_` (new dedup structure) use it as-is,
+      // otherwise add the `emoji_` prefix (legacy structure, kept for backward compatibility).
       const key = emojiName.startsWith('hash_') ? emojiName : `emoji_${emojiName}`
-      
+
       try {
         const width = config?.size?.width ?? 64
         const height = config?.size?.height ?? 64
 
-        // 传入可克隆的普通对象，避免 Vue Proxy
+        // Pass a cloneable plain object to avoid Vue Proxy issues
         await configStorage.saveFile(key, file, 'emoji', {
           name: emojiName,
           size: { width, height },
           format: config?.format,
-          emotions: config?.emotions  // 新增：记录使用该文件的表情列表
+          emotions: config?.emotions  // New: list of emotions that use this file
         })
-        console.log(`表情文件已保存: ${key} - ${file.name}`)
+        console.log(`Emoji file saved: ${key} - ${file.name}`)
       } catch (error) {
-        console.warn(`保存表情文件失败: ${emojiName}`, error)
+        console.warn(`Failed to save emoji file: ${emojiName}`, error)
       }
     }
   }
 
   /**
-   * 为背景文件提供自动保存功能
-   * @param {string} mode - 模式 ('light' 或 'dark')
-   * @param {File} file - 背景文件
-   * @param {Object} config - 背景配置
+   * Auto-save a background file.
+   * @param {string} mode - Mode ('light' or 'dark')
+   * @param {File} file - Background file
+   * @param {Object} config - Background configuration
    * @returns {Promise<void>}
    */
   static async saveBackgroundFile(mode, file, config = {}) {
@@ -81,48 +81,48 @@ class StorageHelper {
           mode,
           ...safeConfig
         })
-        console.log(`背景文件已保存: ${mode} - ${file.name}`)
+        console.log(`Background file saved: ${mode} - ${file.name}`)
       } catch (error) {
-        console.warn(`保存背景文件失败: ${mode}`, error)
+        console.warn(`Failed to save background file: ${mode}`, error)
       }
     }
   }
 
   /**
-   * 恢复字体文件
+   * Restore a font file.
    * @returns {Promise<File|null>}
    */
   static async restoreFontFile() {
     try {
       return await configStorage.loadFile('custom_font')
     } catch (error) {
-      console.warn('恢复字体文件失败:', error)
+      console.warn('Failed to restore font file:', error)
       return null
     }
   }
 
   /**
-   * 恢复表情文件
-   * @param {string} emojiName - 表情名称或文件hash（如果以hash_开头）
+   * Restore an emoji file.
+   * @param {string} emojiName - Emoji name or file hash (if prefixed with `hash_`)
    * @returns {Promise<File|null>}
    */
   static async restoreEmojiFile(emojiName) {
     if (!emojiName) return null
 
     try {
-      // 如果 emojiName 已经以 hash_ 开头（新的去重结构），直接使用
-      // 否则添加 emoji_ 前缀（旧的结构，向后兼容）
+      // When `emojiName` already starts with `hash_` (new dedup structure) use it as-is,
+      // otherwise add the `emoji_` prefix (legacy structure, kept for backward compatibility).
       const key = emojiName.startsWith('hash_') ? emojiName : `emoji_${emojiName}`
       return await configStorage.loadFile(key)
     } catch (error) {
-      console.warn(`恢复表情文件失败: ${emojiName}`, error)
+      console.warn(`Failed to restore emoji file: ${emojiName}`, error)
       return null
     }
   }
 
   /**
-   * 恢复背景文件
-   * @param {string} mode - 模式 ('light' 或 'dark')
+   * Restore a background file.
+   * @param {string} mode - Mode ('light' or 'dark')
    * @returns {Promise<File|null>}
    */
   static async restoreBackgroundFile(mode) {
@@ -132,46 +132,46 @@ class StorageHelper {
       const key = `background_${mode}`
       return await configStorage.loadFile(key)
     } catch (error) {
-      console.warn(`恢复背景文件失败: ${mode}`, error)
+      console.warn(`Failed to restore background file: ${mode}`, error)
       return null
     }
   }
 
   /**
-   * 删除字体文件
+   * Delete the font file.
    * @returns {Promise<void>}
    */
   static async deleteFontFile() {
     try {
       await configStorage.deleteFile('custom_font')
-      console.log('字体文件已删除')
+      console.log('Font file deleted')
     } catch (error) {
-      console.warn('删除字体文件失败:', error)
+      console.warn('Failed to delete font file:', error)
     }
   }
 
   /**
-   * 删除表情文件
-   * @param {string} emojiName - 表情名称或文件hash（如果以hash_开头）
+   * Delete an emoji file.
+   * @param {string} emojiName - Emoji name or file hash (if prefixed with `hash_`)
    * @returns {Promise<void>}
    */
   static async deleteEmojiFile(emojiName) {
     if (!emojiName) return
 
     try {
-      // 如果 emojiName 已经以 hash_ 开头（新的去重结构），直接使用
-      // 否则添加 emoji_ 前缀（旧的结构，向后兼容）
+      // When `emojiName` already starts with `hash_` (new dedup structure) use it as-is,
+      // otherwise add the `emoji_` prefix (legacy structure, kept for backward compatibility).
       const key = emojiName.startsWith('hash_') ? emojiName : `emoji_${emojiName}`
       await configStorage.deleteFile(key)
-      console.log(`表情文件已删除: ${key}`)
+      console.log(`Emoji file deleted: ${key}`)
     } catch (error) {
-      console.warn(`删除表情文件失败: ${emojiName}`, error)
+      console.warn(`Failed to delete emoji file: ${emojiName}`, error)
     }
   }
 
   /**
-   * 删除背景文件
-   * @param {string} mode - 模式 ('light' 或 'dark')
+   * Delete a background file.
+   * @param {string} mode - Mode ('light' or 'dark')
    * @returns {Promise<void>}
    */
   static async deleteBackgroundFile(mode) {
@@ -180,21 +180,21 @@ class StorageHelper {
     try {
       const key = `background_${mode}`
       await configStorage.deleteFile(key)
-      console.log(`背景文件已删除: ${mode}`)
+      console.log(`Background file deleted: ${mode}`)
     } catch (error) {
-      console.warn(`删除背景文件失败: ${mode}`, error)
+      console.warn(`Failed to delete background file: ${mode}`, error)
     }
   }
 
   /**
-   * 获取文件存储信息
+   * Get storage information.
    * @returns {Promise<Object>}
    */
   static async getStorageInfo() {
     try {
       return await configStorage.getStorageInfo()
     } catch (error) {
-      console.warn('获取存储信息失败:', error)
+      console.warn('Failed to get storage info:', error)
       return {
         configs: { count: 0 },
         files: { count: 0 },
@@ -205,15 +205,15 @@ class StorageHelper {
   }
 
   /**
-   * 清理所有文件存储
+   * Clear all stored files.
    * @returns {Promise<void>}
    */
   static async clearAllFiles() {
     try {
       await configStorage.clearAll()
-      console.log('所有存储文件已清理')
+      console.log('All stored files cleared')
     } catch (error) {
-      console.warn('清理存储文件失败:', error)
+      console.warn('Failed to clear stored files:', error)
       throw error
     }
   }

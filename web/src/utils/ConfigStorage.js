@@ -1,11 +1,11 @@
 /**
- * ConfigStorage 类
- * 用于管理配置和文件的 IndexedDB 存储
- * 
- * 主要功能：
- * - 存储和恢复用户配置
- * - 存储和恢复用户上传的文件
- * - 提供清空配置的功能
+ * ConfigStorage class
+ * Manages IndexedDB storage for configuration and files.
+ *
+ * Main features:
+ * - Store and restore user configuration
+ * - Store and restore user-uploaded files
+ * - Clear stored configuration
  */
 
 class ConfigStorage {
@@ -17,7 +17,7 @@ class ConfigStorage {
   }
 
   /**
-   * 初始化 IndexedDB
+   * Initialize IndexedDB
    * @returns {Promise<void>}
    */
   async initialize() {
@@ -29,48 +29,48 @@ class ConfigStorage {
       const request = indexedDB.open(this.dbName, this.version)
 
       request.onerror = () => {
-        console.error('IndexedDB 初始化失败:', request.error)
+        console.error('IndexedDB initialization failed:', request.error)
         reject(request.error)
       }
 
       request.onsuccess = () => {
         this.db = request.result
         this.initialized = true
-        console.log('IndexedDB 初始化成功')
+        console.log('IndexedDB initialization succeeded')
         resolve()
       }
 
       request.onupgradeneeded = (event) => {
         const db = event.target.result
 
-        // 创建配置存储表
+        // Create the configuration object store
         if (!db.objectStoreNames.contains('configs')) {
           const configStore = db.createObjectStore('configs', { keyPath: 'key' })
           configStore.createIndex('timestamp', 'timestamp', { unique: false })
         }
 
-        // 创建文件存储表
+        // Create the file object store
         if (!db.objectStoreNames.contains('files')) {
           const fileStore = db.createObjectStore('files', { keyPath: 'id' })
           fileStore.createIndex('type', 'type', { unique: false })
           fileStore.createIndex('timestamp', 'timestamp', { unique: false })
         }
 
-        // 创建临时存储表（用于转换后的字体等）
+        // Create the temporary data store (e.g. for converted fonts)
         if (!db.objectStoreNames.contains('temp_data')) {
           const tempStore = db.createObjectStore('temp_data', { keyPath: 'key' })
           tempStore.createIndex('type', 'type', { unique: false })
           tempStore.createIndex('timestamp', 'timestamp', { unique: false })
         }
 
-        console.log('IndexedDB 表结构创建完成')
+        console.log('IndexedDB schema creation complete')
       }
     })
   }
 
   /**
-   * 保存配置到 IndexedDB
-   * @param {Object} config - 完整的配置对象
+   * Save a configuration to IndexedDB
+   * @param {Object} config - Full configuration object
    * @returns {Promise<void>}
    */
   async saveConfig(config) {
@@ -82,7 +82,7 @@ class ConfigStorage {
 
     const configData = {
       key: 'current_config',
-      config: sanitizedConfig, // 深拷贝并剔除不可序列化字段
+      config: sanitizedConfig, // Deep copy with non-serializable fields removed
       timestamp: Date.now()
     }
 
@@ -92,51 +92,51 @@ class ConfigStorage {
       const request = store.put(configData)
 
       request.onerror = () => {
-        console.error('保存配置失败:', request.error)
+        console.error('Failed to save configuration:', request.error)
         reject(request.error)
       }
 
       request.onsuccess = () => {
-        console.log('配置已保存到 IndexedDB')
+        console.log('Configuration saved to IndexedDB')
         resolve()
       }
     })
   }
 
   /**
-   * 生成可安全存储的配置对象
-   * - File/Blob 等不可序列化字段统一置为 null
-   * - 保留 images 的键，以便后续按键名从存储恢复
+   * Produce a configuration object safe for storage.
+   * - Non-serializable fields such as File/Blob are replaced with null
+   * - The `images` keys are preserved so they can be restored later
    */
   sanitizeConfigForStorage(config) {
     const cloned = JSON.parse(JSON.stringify(config || {}))
 
     try {
-      // 字体文件（始终保留 custom 配置，即使当前选择的是预设字体）
+      // Font file (always keep the custom config, even when a preset font is active)
       if (cloned?.theme?.font?.custom) {
-        // 保留 custom 配置，但将 file 设为 null
+        // Keep custom settings but set `file` to null
         cloned.theme.font.custom.file = null
       }
 
-      // 表情图片（支持新的 hash 去重结构）
+      // Emoji images (supports the new hash-deduplication structure)
       if (cloned?.theme?.emoji?.type === 'custom') {
         if (!cloned.theme.emoji.custom) cloned.theme.emoji.custom = {}
-        
-        // 保留旧结构的 images（置为 null）
+
+        // Keep the legacy `images` structure (set values to null)
         const images = cloned.theme.emoji?.custom?.images || {}
         const sanitizedImages = {}
         Object.keys(images).forEach((k) => {
           sanitizedImages[k] = null
         })
         cloned.theme.emoji.custom.images = sanitizedImages
-        
-        // 保留新结构的 emotionMap（emotion -> hash 映射）
+
+        // Preserve the new emotionMap (emotion -> hash mapping)
         if (cloned.theme.emoji.custom.emotionMap) {
-          // emotionMap 只包含字符串映射，可以直接保留
-          // 不需要处理，因为它不包含 File 对象
+          // emotionMap only contains string mappings and can be kept as-is.
+          // No processing needed because it contains no File objects.
         }
-        
-        // 清理 fileMap（hash -> File 映射），将 File 对象置为 null
+
+        // Sanitize fileMap (hash -> File mapping) by replacing File objects with null
         if (cloned.theme.emoji.custom.fileMap) {
           const fileMap = cloned.theme.emoji.custom.fileMap
           const sanitizedFileMap = {}
@@ -147,7 +147,7 @@ class ConfigStorage {
         }
       }
 
-      // 背景图片
+      // Background images
       if (cloned?.theme?.skin?.light) {
         cloned.theme.skin.light.backgroundImage = null
       }
@@ -155,15 +155,15 @@ class ConfigStorage {
         cloned.theme.skin.dark.backgroundImage = null
       }
     } catch (e) {
-      // 忽略清理异常，返回已克隆对象
+      // Ignore sanitization errors and return the cloned object
     }
 
     return cloned
   }
 
   /**
-   * 从 IndexedDB 恢复配置
-   * @returns {Promise<Object|null>} 配置数据或null
+   * Restore configuration from IndexedDB
+   * @returns {Promise<Object|null>} The configuration data, or null
    */
   async loadConfig() {
     if (!this.initialized) {
@@ -176,14 +176,14 @@ class ConfigStorage {
       const request = store.get('current_config')
 
       request.onerror = () => {
-        console.error('加载配置失败:', request.error)
+        console.error('Failed to load configuration:', request.error)
         reject(request.error)
       }
 
       request.onsuccess = () => {
         const result = request.result
         if (result) {
-          console.log('从 IndexedDB 恢复配置成功')
+          console.log('Configuration restored from IndexedDB')
           resolve({
             config: result.config,
             timestamp: result.timestamp
@@ -196,11 +196,11 @@ class ConfigStorage {
   }
 
   /**
-   * 保存文件到 IndexedDB
-   * @param {string} id - 文件ID
-   * @param {File} file - 文件对象
-   * @param {string} type - 文件类型 (font, emoji, background)
-   * @param {Object} metadata - 额外的元数据
+   * Save a file to IndexedDB
+   * @param {string} id - File ID
+   * @param {File} file - File object
+   * @param {string} type - File type (font, emoji, background)
+   * @param {Object} metadata - Additional metadata
    * @returns {Promise<void>}
    */
   async saveFile(id, file, type, metadata = {}) {
@@ -208,15 +208,15 @@ class ConfigStorage {
       await this.initialize()
     }
 
-    // 将文件转换为 ArrayBuffer 以便存储
+    // Convert the file to an ArrayBuffer for storage
     const arrayBuffer = await this.fileToArrayBuffer(file)
 
-    // 确保 metadata 可被结构化克隆（去除 Proxy/Ref/循环等）
+    // Ensure metadata is structured-cloneable (strip Proxy/Ref/circular refs)
     let safeMetadata = {}
     try {
       safeMetadata = metadata ? JSON.parse(JSON.stringify(metadata)) : {}
     } catch (e) {
-      // 回退为浅拷贝的纯对象
+      // Fall back to a shallow copy as a plain object
       safeMetadata = { ...metadata }
     }
 
@@ -238,21 +238,21 @@ class ConfigStorage {
       const request = store.put(fileData)
 
       request.onerror = () => {
-        console.error('保存文件失败:', request.error)
+        console.error('Failed to save file:', request.error)
         reject(request.error)
       }
 
       request.onsuccess = () => {
-        console.log(`文件 ${file.name} 已保存到 IndexedDB`)
+        console.log(`File ${file.name} saved to IndexedDB`)
         resolve()
       }
     })
   }
 
   /**
-   * 从 IndexedDB 加载文件
-   * @param {string} id - 文件ID
-   * @returns {Promise<File|null>} 文件对象或null
+   * Load a file from IndexedDB
+   * @param {string} id - File ID
+   * @returns {Promise<File|null>} The File object, or null
    */
   async loadFile(id) {
     if (!this.initialized) {
@@ -265,27 +265,27 @@ class ConfigStorage {
       const request = store.get(id)
 
       request.onerror = () => {
-        console.error('加载文件失败:', request.error)
+        console.error('Failed to load file:', request.error)
         reject(request.error)
       }
 
       request.onsuccess = () => {
         const result = request.result
         if (result) {
-          // 将 ArrayBuffer 转换回 File 对象
+          // Convert the ArrayBuffer back into a File object
           const blob = new Blob([result.data], { type: result.mimeType })
           const file = new File([blob], result.name, {
             type: result.mimeType,
             lastModified: result.lastModified
           })
 
-          // 添加额外的元数据
+          // Attach extra metadata
           file.storedId = result.id
           file.storedType = result.type
           file.storedMetadata = result.metadata
           file.storedTimestamp = result.timestamp
 
-          console.log(`文件 ${result.name} 从 IndexedDB 恢复成功`)
+          console.log(`File ${result.name} restored from IndexedDB`)
           resolve(file)
         } else {
           resolve(null)
@@ -295,9 +295,9 @@ class ConfigStorage {
   }
 
   /**
-   * 获取指定类型的所有文件
-   * @param {string} type - 文件类型
-   * @returns {Promise<Array>} 文件列表
+   * Get all files of a given type
+   * @param {string} type - File type
+   * @returns {Promise<Array>} File list
    */
   async getFilesByType(type) {
     if (!this.initialized) {
@@ -311,7 +311,7 @@ class ConfigStorage {
       const request = index.getAll(type)
 
       request.onerror = () => {
-        console.error('获取文件列表失败:', request.error)
+        console.error('Failed to get file list:', request.error)
         reject(request.error)
       }
 
@@ -338,11 +338,11 @@ class ConfigStorage {
   }
 
   /**
-   * 保存临时数据（如转换后的字体等）
-   * @param {string} key - 数据键
-   * @param {ArrayBuffer} data - 数据
-   * @param {string} type - 数据类型
-   * @param {Object} metadata - 元数据
+   * Save temporary data (for example, converted font data)
+   * @param {string} key - Data key
+   * @param {ArrayBuffer} data - Data
+   * @param {string} type - Data type
+   * @param {Object} metadata - Metadata
    * @returns {Promise<void>}
    */
   async saveTempData(key, data, type, metadata = {}) {
@@ -364,21 +364,21 @@ class ConfigStorage {
       const request = store.put(tempData)
 
       request.onerror = () => {
-        console.error('保存临时数据失败:', request.error)
+        console.error('Failed to save temporary data:', request.error)
         reject(request.error)
       }
 
       request.onsuccess = () => {
-        console.log(`临时数据 ${key} 已保存`)
+        console.log(`Temporary data ${key} saved`)
         resolve()
       }
     })
   }
 
   /**
-   * 加载临时数据
-   * @param {string} key - 数据键
-   * @returns {Promise<Object|null>} 临时数据或null
+   * Load temporary data
+   * @param {string} key - Data key
+   * @returns {Promise<Object|null>} The temporary data, or null
    */
   async loadTempData(key) {
     if (!this.initialized) {
@@ -391,7 +391,7 @@ class ConfigStorage {
       const request = store.get(key)
 
       request.onerror = () => {
-        console.error('加载临时数据失败:', request.error)
+        console.error('Failed to load temporary data:', request.error)
         reject(request.error)
       }
 
@@ -403,7 +403,7 @@ class ConfigStorage {
   }
 
   /**
-   * 清空所有存储的数据
+   * Clear all stored data
    * @returns {Promise<void>}
    */
   async clearAll() {
@@ -412,7 +412,7 @@ class ConfigStorage {
     }
 
     const storeNames = ['configs', 'files', 'temp_data']
-    
+
     return new Promise((resolve, reject) => {
       const transaction = this.db.transaction(storeNames, 'readwrite')
       let completedStores = 0
@@ -422,9 +422,9 @@ class ConfigStorage {
         completedStores++
         if (completedStores === storeNames.length) {
           if (hasError) {
-            reject(new Error('清空部分数据时出现错误'))
+            reject(new Error('Error while clearing some stored data'))
           } else {
-            console.log('所有存储数据已清空')
+            console.log('All stored data cleared')
             resolve()
           }
         }
@@ -435,13 +435,13 @@ class ConfigStorage {
         const request = store.clear()
 
         request.onerror = () => {
-          console.error(`清空 ${storeName} 失败:`, request.error)
+          console.error(`Failed to clear ${storeName}:`, request.error)
           hasError = true
           checkComplete()
         }
 
         request.onsuccess = () => {
-          console.log(`${storeName} 已清空`)
+          console.log(`${storeName} cleared`)
           checkComplete()
         }
       })
@@ -449,8 +449,8 @@ class ConfigStorage {
   }
 
   /**
-   * 删除指定文件
-   * @param {string} id - 文件ID
+   * Delete a specific file
+   * @param {string} id - File ID
    * @returns {Promise<void>}
    */
   async deleteFile(id) {
@@ -464,20 +464,20 @@ class ConfigStorage {
       const request = store.delete(id)
 
       request.onerror = () => {
-        console.error('删除文件失败:', request.error)
+        console.error('Failed to delete file:', request.error)
         reject(request.error)
       }
 
       request.onsuccess = () => {
-        console.log(`文件 ${id} 已删除`)
+        console.log(`File ${id} deleted`)
         resolve()
       }
     })
   }
 
   /**
-   * 获取存储使用情况
-   * @returns {Promise<Object>} 存储统计信息
+   * Get storage usage information
+   * @returns {Promise<Object>} Storage statistics
    */
   async getStorageInfo() {
     if (!this.initialized) {
@@ -500,7 +500,7 @@ class ConfigStorage {
       info[storeName] = { count }
     }
 
-    // 获取上次保存配置的时间
+    // Fetch the last-saved configuration timestamp
     const configData = await this.loadConfig()
     info.lastSaved = configData ? new Date(configData.timestamp) : null
 
@@ -508,7 +508,7 @@ class ConfigStorage {
   }
 
   /**
-   * 检查是否有存储的配置
+   * Check whether a stored configuration exists
    * @returns {Promise<boolean>}
    */
   async hasStoredConfig() {
@@ -516,39 +516,39 @@ class ConfigStorage {
       const config = await this.loadConfig()
       return config !== null
     } catch (error) {
-      console.error('检查存储配置时出错:', error)
+      console.error('Error while checking stored configuration:', error)
       return false
     }
   }
 
   /**
-   * 将文件转换为 ArrayBuffer
-   * @param {File} file - 文件对象
+   * Convert a File to an ArrayBuffer
+   * @param {File} file - File object
    * @returns {Promise<ArrayBuffer>}
    */
   fileToArrayBuffer(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
       reader.onload = () => resolve(reader.result)
-      reader.onerror = () => reject(new Error('读取文件失败'))
+      reader.onerror = () => reject(new Error('Failed to read file'))
       reader.readAsArrayBuffer(file)
     })
   }
 
   /**
-   * 关闭数据库连接
+   * Close the database connection
    */
   close() {
     if (this.db) {
       this.db.close()
       this.db = null
       this.initialized = false
-      console.log('IndexedDB 连接已关闭')
+      console.log('IndexedDB connection closed')
     }
   }
 }
 
-// 创建单例实例
+// Create a singleton instance
 const configStorage = new ConfigStorage()
 
 export default configStorage

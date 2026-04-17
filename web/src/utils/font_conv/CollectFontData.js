@@ -1,5 +1,5 @@
 // Read fonts - ES6 version for browser
-// 核心字体数据收集模块
+// Core font data collection module
 
 import opentype from 'opentype.js'
 import * as ft_render from './FreeType.js'
@@ -24,7 +24,7 @@ export default async function collect_font_data(args) {
     try {
       let b = source_bin
 
-      // 处理不同类型的输入数据
+      // Handle different input data types
       if (b instanceof File) {
         b = await b.arrayBuffer()
       } else if (b instanceof Uint8Array) {
@@ -33,8 +33,8 @@ export default async function collect_font_data(args) {
       }
 
       fonts_opentype[source_path] = opentype.parse(b)
-      
-      // 使用处理后的数据创建 FreeType 字体实例
+
+      // Create the FreeType font instance using the processed data
       fonts_freetype[source_path] = ft_render.fontface_create(b, args.size)
     } catch (err) {
       throw new AppError(`Cannot load font "${source_path}": ${err.message}`)

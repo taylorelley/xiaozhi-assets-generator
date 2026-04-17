@@ -1,6 +1,6 @@
 /**
- * BrowserFontConverter - 完整的浏览器端字体转换器
- * 基于 lv_font_conv 的核心逻辑，适配浏览器环境
+ * BrowserFontConverter - A complete browser-side font converter
+ * Based on the core logic of lv_font_conv, adapted for the browser environment
  */
 
 import opentype from 'opentype.js'
@@ -12,23 +12,23 @@ class BrowserFontConverter {
   constructor() {
     this.initialized = false
     this.supportedFormats = ['ttf', 'woff', 'woff2', 'otf']
-    this.charsetCache = new Map() // 缓存已加载的字符集
+    this.charsetCache = new Map() // Cache for already-loaded charsets
   }
 
   /**
-   * 初始化转换器
+   * Initialize the converter
    */
   async initialize() {
     if (this.initialized) return
-    
+
     try {
-      // 检查依赖是否可用
+      // Verify that dependencies are available
       if (typeof opentype === 'undefined') {
         throw new Error('opentype.js not loaded')
       }
-      
+
       this.initialized = true
-      console.log('BrowserFontConverter 初始化完成')
+      console.log('BrowserFontConverter initialization complete')
     } catch (error) {
       console.error('BrowserFontConverter initialization failed:', error)
       throw error
@@ -36,7 +36,7 @@ class BrowserFontConverter {
   }
 
   /**
-   * 验证字体文件
+   * Validate a font file
    */
   validateFont(fontFile) {
     if (!fontFile) return false
@@ -62,7 +62,7 @@ class BrowserFontConverter {
   }
 
   /**
-   * 获取字体信息
+   * Get font information
    */
   async getFontInfo(fontFile) {
     try {
@@ -100,18 +100,18 @@ class BrowserFontConverter {
   }
 
   /**
-   * 获取本地化名称
+   * Get a localized name
    */
   getLocalizedName(nameObj) {
     if (!nameObj) return null
-    
-    // 优先级：中文 > 英文 > 第一个可用的
-    return nameObj['zh'] || nameObj['zh-CN'] || nameObj['en'] || 
+
+    // Priority: Chinese > English > first available
+    return nameObj['zh'] || nameObj['zh-CN'] || nameObj['en'] ||
            nameObj[Object.keys(nameObj)[0]]
   }
 
   /**
-   * 转换字体为 CBIN 格式
+   * Convert the font to CBIN format
    */
   async convertToCBIN(options) {
     if (!this.initialized) {
@@ -133,13 +133,13 @@ class BrowserFontConverter {
     } = options
 
     if (!this.validateFont(fontFile)) {
-      throw new AppError('不支持的字体文件格式')
+      throw new AppError('Unsupported font file format')
     }
 
     try {
       if (progressCallback) progressCallback(0, 'Starting font processing...')
 
-      // 准备字体数据
+      // Prepare font data
       let fontBuffer
       if (fontFile instanceof File) {
         fontBuffer = await fontFile.arrayBuffer()
@@ -149,12 +149,12 @@ class BrowserFontConverter {
 
       if (progressCallback) progressCallback(10, 'Parsing font structure...')
 
-      // 构建字符范围和符号（使用异步版本支持从文件加载字符集）
+      // Build the character ranges and symbols (async version supports loading a charset from a file)
       const { ranges, charSymbols } = await this.parseCharacterInputAsync(charset, symbols, range)
 
       if (progressCallback) progressCallback(20, 'Preparing conversion parameters...')
 
-      // 构建转换参数
+      // Build the conversion parameters
       const convertArgs = {
         font: [{
           source_path: fontName || 'custom_font',
@@ -179,12 +179,12 @@ class BrowserFontConverter {
 
       if (progressCallback) progressCallback(30, 'Collecting font data...')
 
-      // 收集字体数据
+      // Collect font data
       const fontData = await collect_font_data(convertArgs)
 
       if (progressCallback) progressCallback(70, 'Generating CBIN format...')
 
-      // 生成 CBIN 数据
+      // Generate the CBIN data
       const result = write_cbin(convertArgs, fontData)
       const outputName = convertArgs.output
       
@@ -199,26 +199,26 @@ class BrowserFontConverter {
   }
 
   /**
-   * 解析字符输入（字符集、符号、范围）- 异步版本
+   * Parse character input (charset, symbols, range) - async version
    */
   async parseCharacterInputAsync(charset, symbols, range) {
     let ranges = []
     let charSymbols = symbols || ''
 
-    // 处理完整字符集 - 使用 Unicode 范围 0x0-0xFFFF
+    // Handle the full charset - uses the Unicode range 0x0-0xFFFF
     if (charset === 'full') {
       ranges = [0x0, 0xFFFF, 0x0]
-      // 完整字符集不需要额外的符号
+      // The full charset does not need additional symbols
       return { ranges, charSymbols }
     }
 
-    // 处理预设字符集
+    // Handle preset charsets
     if (charset && charset !== 'custom') {
       const presetChars = await this.getCharsetContentAsync(charset)
       charSymbols = presetChars + charSymbols
     }
 
-    // 处理 Unicode 范围
+    // Handle Unicode ranges
     if (range) {
       ranges = this.parseUnicodeRange(range)
     }
@@ -227,26 +227,26 @@ class BrowserFontConverter {
   }
 
   /**
-   * 解析字符输入（字符集、符号、范围）- 同步版本（向后兼容）
+   * Parse character input (charset, symbols, range) - sync version (backward compatible)
    */
   parseCharacterInput(charset, symbols, range) {
     let ranges = []
     let charSymbols = symbols || ''
 
-    // 处理完整字符集 - 使用 Unicode 范围 0x0-0xFFFF
+    // Handle the full charset - uses the Unicode range 0x0-0xFFFF
     if (charset === 'full') {
       ranges = [0x0, 0xFFFF, 0x0]
-      // 完整字符集不需要额外的符号
+      // The full charset does not need additional symbols
       return { ranges, charSymbols }
     }
 
-    // 处理预设字符集
+    // Handle preset charsets
     if (charset && charset !== 'custom') {
       const presetChars = this.getCharsetContent(charset)
       charSymbols = presetChars + charSymbols
     }
 
-    // 处理 Unicode 范围
+    // Handle Unicode ranges
     if (range) {
       ranges = this.parseUnicodeRange(range)
     }
@@ -256,7 +256,7 @@ class BrowserFontConverter {
 
 
   /**
-   * 异步加载字符集文件
+   * Asynchronously load a charset file
    */
   async loadCharsetFromFile(charset) {
     const charsetFiles = {
@@ -278,10 +278,10 @@ class BrowserFontConverter {
       }
       
       const text = await response.text()
-      // 将每行的字符连接成一个字符串，保留所有字符（包括空白字符）
+      // Join each line's characters into a single string, preserving all characters (including whitespace)
       const characters = text.split('\n').join('')
-      
-      // 缓存结果
+
+      // Cache the result
       this.charsetCache.set(charset, characters)
       return characters
     } catch (error) {
@@ -291,53 +291,53 @@ class BrowserFontConverter {
   }
 
   /**
-   * 获取字符集内容（同步方法，用于已缓存的字符集）
+   * Get charset content (sync method, used for already-cached charsets)
    */
   getCharsetContent(charset) {
     const charsets = {}
-    
-    // 如果是需要从文件加载的字符集，先检查缓存
+
+    // For charsets that need to be loaded from a file, check the cache first
     if ((charset === 'latin' || charset === 'deepseek' || charset === 'gb2312') && this.charsetCache.has(charset)) {
       return this.charsetCache.get(charset)
     }
-    
-    // 如果请求 basic，重定向到 latin（向后兼容）
+
+    // If 'basic' is requested, redirect to 'latin' for backward compatibility
     if (charset === 'basic') {
       return this.getCharsetContent('latin')
     }
-    
-    // 默认返回空字符串，需要先调用异步方法加载
+
+    // Default: return an empty string; caller needs to invoke the async method first
     return charsets[charset] || ''
   }
 
   /**
-   * 异步获取字符集内容
+   * Asynchronously get charset content
    */
   async getCharsetContentAsync(charset) {
-    // 如果请求 basic，重定向到 latin（向后兼容）
+    // If 'basic' is requested, redirect to 'latin' for backward compatibility
     if (charset === 'basic') {
       charset = 'latin'
     }
-    
-    // 如果字符集已缓存，直接返回
+
+    // Return immediately if the charset is already cached
     if (this.charsetCache.has(charset)) {
       return this.charsetCache.get(charset)
     }
-    
-    // 对于需要从文件加载的字符集
+
+    // For charsets that need to be loaded from a file
     if (charset === 'latin' || charset === 'deepseek' || charset === 'gb2312' || charset === 'qwen') {
       const loadedCharset = await this.loadCharsetFromFile(charset)
       if (loadedCharset) {
         return loadedCharset
       }
     }
-    
-    // 回退到同步方法
+
+    // Fall back to the sync method
     return this.getCharsetContent(charset)
   }
 
   /**
-   * 解析 Unicode 范围字符串
+   * Parse a Unicode range string
    */
   parseUnicodeRange(rangeStr) {
     const ranges = []
@@ -367,7 +367,7 @@ class BrowserFontConverter {
   }
 
   /**
-   * 解析十六进制或十进制数字
+   * Parse a hexadecimal or decimal number
    */
   parseHexOrDec(str) {
     const trimmed = str.trim()
@@ -382,39 +382,39 @@ class BrowserFontConverter {
   }
 
   /**
-   * 估算输出大小 - 异步版本
+   * Estimate output size - async version
    */
   async estimateSizeAsync(options) {
     const { fontSize = 20, bpp = 4, charset = 'latin', symbols = '', range = '' } = options
-    
-    // 计算字符数量
+
+    // Compute the character count
     let charCount = symbols.length
-    
-    // 处理完整字符集 - 包含 0x0-0xFFFF (65536 个字符)
+
+    // Handle the full charset - includes 0x0-0xFFFF (65536 characters)
     if (charset === 'full') {
       charCount = 65536
     } else if (charset && charset !== 'custom') {
       const charsetContent = await this.getCharsetContentAsync(charset)
       charCount += charsetContent.length
     }
-    
+
     if (range) {
       const ranges = this.parseUnicodeRange(range)
       for (let i = 0; i < ranges.length; i += 3) {
         charCount += ranges[i + 1] - ranges[i] + 1
       }
     }
-    
-    // 去重字符数（粗略估算），但完整字符集不去重
+
+    // Rough deduplication estimate; the full charset is not deduplicated
     if (charset !== 'full') {
       charCount = Math.min(charCount, charCount * 0.8)
     }
-    
-    // 估算每个字符的字节数
+
+    // Estimate the average number of bytes per character
     const avgBytesPerChar = Math.ceil((fontSize * fontSize * bpp) / 8) + 40
-    
-    const estimatedSize = charCount * avgBytesPerChar + 2048 // 加上头部和索引
-    
+
+    const estimatedSize = charCount * avgBytesPerChar + 2048 // Add header and index
+
     return {
       characterCount: Math.floor(charCount),
       avgBytesPerChar,
@@ -424,39 +424,39 @@ class BrowserFontConverter {
   }
 
   /**
-   * 估算输出大小 - 同步版本（向后兼容）
+   * Estimate output size - sync version (backward compatible)
    */
   estimateSize(options) {
     const { fontSize = 20, bpp = 4, charset = 'latin', symbols = '', range = '' } = options
-    
-    // 计算字符数量
+
+    // Compute the character count
     let charCount = symbols.length
-    
-    // 处理完整字符集 - 包含 0x0-0xFFFF (65536 个字符)
+
+    // Handle the full charset - includes 0x0-0xFFFF (65536 characters)
     if (charset === 'full') {
       charCount = 65536
     } else if (charset && charset !== 'custom') {
       const charsetContent = this.getCharsetContent(charset)
       charCount += charsetContent.length
     }
-    
+
     if (range) {
       const ranges = this.parseUnicodeRange(range)
       for (let i = 0; i < ranges.length; i += 3) {
         charCount += ranges[i + 1] - ranges[i] + 1
       }
     }
-    
-    // 去重字符数（粗略估算），但完整字符集不去重
+
+    // Rough deduplication estimate; the full charset is not deduplicated
     if (charset !== 'full') {
       charCount = Math.min(charCount, charCount * 0.8)
     }
-    
-    // 估算每个字符的字节数
+
+    // Estimate the average number of bytes per character
     const avgBytesPerChar = Math.ceil((fontSize * fontSize * bpp) / 8) + 40
-    
-    const estimatedSize = charCount * avgBytesPerChar + 2048 // 加上头部和索引
-    
+
+    const estimatedSize = charCount * avgBytesPerChar + 2048 // Add header and index
+
     return {
       characterCount: Math.floor(charCount),
       avgBytesPerChar,
@@ -466,7 +466,7 @@ class BrowserFontConverter {
   }
 
   /**
-   * 格式化字节大小
+   * Format a byte size
    */
   formatBytes(bytes) {
     if (bytes === 0) return '0 Bytes'
@@ -479,15 +479,15 @@ class BrowserFontConverter {
   }
 
   /**
-   * 清理资源
+   * Clean up resources
    */
   cleanup() {
-    // 清理可能的资源引用
+    // Clean up any lingering resource references
     this.initialized = false
   }
 }
 
-// 创建单例实例
+// Create a singleton instance
 const browserFontConverter = new BrowserFontConverter()
 
 export default browserFontConverter

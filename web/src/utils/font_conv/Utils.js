@@ -1,5 +1,5 @@
 // Font processing utilities
-// ES6 版本，适配浏览器环境
+// ES6 version, adapted for the browser environment
 
 function set_byte_depth(depth) {
   return function (byte) {
@@ -134,7 +134,7 @@ export function sum(arr) {
   return arr.reduce((a, v) => a + v, 0)
 }
 
-// 默认导出所有函数
+// Default export of all functions
 const utils = {
   set_depth,
   unsigned_bits,
